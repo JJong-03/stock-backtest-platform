@@ -22,33 +22,34 @@
 
 ## 2. Project Status
 
-**Current Phase:** Phase-based planning 기준 (2026-02-07), **13 days remaining** (~ 2026-02-19)
-— Phases 1-3 cover core platform; Phases 4-6 cover automation, observability, and polish.
+Active Phase: Phase 1
+
+**Current Phase:** Phase-based planning (as of 2026-02-07).  
+— Phases 1–3 cover core platform; Phases 4–6 cover automation, observability, and polish.
 
 | Phase | Status | Scope |
 |---|---|---|
-| Day 1-2 | **✅ Completed** | Core engine verification, rules library, technical indicators, MVP pipeline |
-| Day 3 | **✅ Completed** | Flask app structure (MVC), immutable engine integration, strategy persistence (SQLite + SQLAlchemy), core web routes & API contracts (`/run_backtest`, `/api/strategies`, `/health`) |
-| Day 3.9 | **✅ Completed** | Advanced UI: VectorBT-style 5-tab dashboard, extended JSON schemas, adapter-layer metrics, portfolio visualization refactor (separate Orders & Trade PnL charts), cumulative return chart |
-| Phase 1 | **📋 Planned** | Containerization & Local Parity (Docker, Compose, .env.example, healthcheck) |
-| Phase 2 | **📋 Planned** | Kubernetes Runtime + Data Layer (Namespace, Deployment, MySQL StatefulSet, ConfigMap/Secret, Ingress) |
-| Phase 3 | **📋 Planned** | Web → K8s Job Orchestration (worker entrypoint, job launcher, status polling, DB persistence) |
-| Phase 4 | **📋 Planned** | Automation & GitOps (CI via GitHub Actions, CD via Argo CD) |
-| Phase 5 | **📋 Planned** | Observability verification (Rule 8) & Demo Assets |
-| Phase 6 | **📋 Planned** | Documentation & Retrospective (architecture diagrams, ops guide, final polish) |
+| Day 1-2 | ✅ Completed | Core engine verification, rules library, technical indicators, MVP pipeline |
+| Day 3 | ✅ Completed | Flask app structure (MVC), immutable engine integration, strategy persistence (SQLite + SQLAlchemy), core web routes & API contracts (`/run_backtest`, `/api/strategies`, `/health`) |
+| Day 3.9 | ✅ Completed | Advanced UI: VectorBT-style 5-tab dashboard, extended JSON schemas, adapter-layer metrics, portfolio visualization refactor (separate Orders & Trade PnL charts), cumulative return chart |
+| Phase 1 | 🚧 In Progress | Containerization & Local Parity (Docker, Compose, .env.example, healthcheck) |
+| Phase 2 | 📋 Planned | Kubernetes Runtime + Data Layer (Namespace, Deployment, MySQL StatefulSet, ConfigMap/Secret, Ingress) |
+| Phase 3 | 📋 Planned | Web → K8s Job Orchestration (worker entrypoint, job launcher, status polling, DB persistence) |
+| Phase 4 | 📋 Planned | Automation & GitOps (CI via GitHub Actions, CD via Argo CD) |
+| Phase 5 | 📋 Planned | Observability verification (Rule 8) & Demo Assets |
+| Phase 6 | 📋 Planned | Documentation & Retrospective (architecture diagrams, ops guide, final polish) |
 
 **Implemented APIs:**
 
 | Method | Path | Status |
 |---|---|---|
-| `GET` | `/` | ✅ Implemented |
-| `POST` | `/run_backtest` | ✅ Implemented |
-| `GET` | `/api/strategies` | ✅ Implemented |
-| `POST` | `/api/strategies` | ✅ Implemented |
-| `DELETE` | `/api/strategies/<id>` | ✅ Implemented |
-| `GET` | `/health` | ✅ Implemented |
-| `GET` | `/status/<run_id>` | 📋 Phase 3 |
-
+| GET | / | ✅ Implemented |
+| POST | /run_backtest | ✅ Implemented |
+| GET | /api/strategies | ✅ Implemented |
+| POST | /api/strategies | ✅ Implemented |
+| DELETE | /api/strategies/<id> | ✅ Implemented |
+| GET | /health | ✅ Implemented |
+| GET | /status/<run_id> | 📋 Phase 3 |
 ---
 
 ## 3. Tech Stack
