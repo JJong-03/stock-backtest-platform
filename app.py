@@ -13,6 +13,7 @@ import os
 import uuid
 import base64
 import logging
+from urllib.parse import quote_plus
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -43,10 +44,37 @@ from adapters.adapter import (
 
 app = Flask(__name__)
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+
+
+def _get_database_uri():
+    """Resolve DB URI with DATABASE_URL priority, then DB_* fallback."""
+    database_url = os.getenv("DATABASE_URL", "").strip()
+    if database_url:
+        return database_url
+
+    db_host = os.getenv("DB_HOST")
+    db_port = os.getenv("DB_PORT", "3306")
+    db_name = os.getenv("DB_NAME")
+    db_user = os.getenv("DB_USER")
+    db_password = os.getenv("DB_PASSWORD")
+
+    if all([db_host, db_name, db_user, db_password]):
+        return (
+            f"mysql+pymysql://{quote_plus(db_user)}:{quote_plus(db_password)}"
+            f"@{db_host}:{db_port}/{db_name}"
+        )
+
+    return "sqlite:///strategies.db"
+
+
+log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=getattr(logging, log_level, logging.INFO),
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
 
 # --- Database configuration ---
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///strategies.db")
+app.config["SQLALCHEMY_DATABASE_URI"] = _get_database_uri()
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 

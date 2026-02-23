@@ -151,7 +151,7 @@ kubectl apply -n $NS -f k8s/secret.yaml
 ```bash
 kubectl create secret generic stock-backtest-secret -n $NS \
   --from-literal=DB_USER=backtest \
-  --from-literal=DB_PASSWORD='changeme'
+  --from-literal=DB_PASSWORD='<your-password>'
 ```
 
 ### 5.4 MySQL StatefulSet/PVC 배포
