@@ -297,3 +297,4 @@ stock_backtest/
 * 아키텍처 상세: [docs/architecture.md](docs/architecture.md)
 * 운영 가이드: [docs/ops-guide.md](docs/ops-guide.md)
 * UI 갤러리: [docs/screenshots.md](docs/screenshots.md)
+
