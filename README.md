@@ -190,42 +190,96 @@ Web은 요청/검증/조회만 담당하고, 무거운 연산은 Job(Worker)로 
 ```text
 stock_backtest/
 |
-|-- CLAUDE.md                          # Design spec (SSOT)
-|-- README.md
-|-- RETROSPECTIVE.md
-|-- requirements.txt
-|-- app.py                             # Web entry
-|-- worker.py                          # (Phase 3) Job worker entry
-|-- extensions.py
-|-- models.py
-|-- Dockerfile                         # (Phase 1)
-|-- docker-compose.yml                 # (Phase 1)
-|-- .env.example                       # (Phase 1)
+|-- CLAUDE.md                          # 프로젝트 규칙/계약/아키텍처 (SSOT)
+|-- README.md                          # 이 문서
+|-- RETROSPECTIVE.md                   # 기술 회고/면접 대비 Q&A
+|-- requirements.txt                   # Python 의존성 (Poetry/Pipenv 금지)
+|-- .gitignore                         # Git 제외 규칙 (strategies.db 등)
+|-- test_structure.py                  # 구조 검증 테스트
+|-- app.py                             # ✅ Flask 애플리케이션 진입점 (Web/Controller)
+|-- worker.py                          # [Phase 3] K8s Job Worker 진입점
+|-- extensions.py                      # ✅ SQLAlchemy 인스턴스 (순환 import 방지)
+|-- models.py                          # ✅ Strategy ORM 모델
+|-- Dockerfile                         # [Phase 1] Multi-stage Docker 빌드
+|-- docker-compose.yml                 # [Phase 1] 로컬 개발: web + mysql
+|-- .env.example                       # [Phase 1] 환경변수 템플릿
+|-- .dockerignore                      # [Phase 1] __pycache__/, .env 등 제외 (data/는 포함)
 |
-|-- backtest/                          # legacy engine (read-only)
-|-- adapters/                          # derived metrics/charts (no engine change)
-|-- rules/
+|-- .github/                           # [Phase 4] CI
+|   +-- workflows/
+|       +-- ci.yml                     # pytest → build → push (immutable tag)
+|
+|-- backtest/                          # 핵심 엔진 (READ-ONLY)
+|   |-- __init__.py
+|   |-- engine.py                      # BacktestEngine -- 수정 금지 (Rule 1)
+|   +-- metrics.py                     # PerformanceMetrics
+|
+|-- rules/                             # 트레이딩 룰 라이브러리
+|   |-- __init__.py
+|   |-- base_rule.py                   # BaseRule, Signal, RuleMetadata, CompositeRule
+|   |-- technical_rules.py             # ✅ RSI, MACD, RSI+MACD 등
+|   |-- paper_rules.py                 # Momentum, Value 등
+|   |-- rule_validator.py              # RuleValidator, SignalAnalyzer
+|   +-- optimizer.py                   # ParameterOptimizer (Grid Search)
+|
+|-- extracted/
+|   +-- features/
+|       |-- __init__.py
+|       +-- technical_indicators.py    # SMA, EMA, RSI, MACD, BB, ATR 등
+|
 |-- scripts/
-|-- tests/
+|   |-- config.py                      # 환경변수 기반 설정(Config)
+|   |-- data_loader.py                 # 데이터 로더 (yfinance 다운로드 + 검증)
+|   |-- logger_config.py               # stdout/stderr 로깅 설정 (Rule 8)
+|   |-- qa_prices.py                   # 데이터 품질 검증
+|   |-- verify_mvp.py                  # E2E 파이프라인 검증
+|   +-- demo.sh                        # [Phase 5] 고정 시나리오 E2E 데모 스크립트
+|
+|-- adapters/                          # ✅ Adapter Layer (Rule 1 준수)
+|   |-- __init__.py
+|   +-- adapter.py                     # derived curves/metrics + render_*_chart
+|
+|-- tests/                             # ✅ Test Suite
+|   |-- __init__.py
+|   +-- test_day39.py                  # 83 tests
+|
 |-- templates/
-|-- k8s/                               # GitOps manifests
-|-- docs/                              # architecture/ops/screenshots
-|-- data/                              # demo OHLCV
+|   +-- index.html                     # ✅ Bootstrap 5 Dark Mode 대시보드
+|
+|-- k8s/                               # [Phase 2-3] Kubernetes 매니페스트 (GitOps Source of Truth)
+|   |-- namespace.yaml
+|   |-- configmap.yaml
+|   |-- secret-template.yaml           # Template only; real secrets via CI/CD or Sealed Secrets
+|   |-- web-deployment.yaml
+|   |-- worker-job-template.yaml
+|   |-- mysql-statefulset.yaml
+|   |-- rbac.yaml                      # SA + Role + RoleBinding (namespace-scoped, jobs.batch only)
+|   +-- ingress.yaml
+|
+|-- docs/                              # [Phase 6] 프로젝트 문서
+|   |-- architecture.md                # 아키텍처 다이어그램 (Mermaid)
+|   |-- ops-guide.md                   # 운영 가이드 (배포/롤백/트러블슈팅)
+|   |-- screenshots.md                 # ✅ UI 스크린샷 갤러리 (이 파일)
+|   +-- images/                        # README/Docs용 이미지
+|
+|-- data/                              # OHLCV CSV 데이터 (재현성 목적)
+|   +-- AAPL.csv
 ```
+
 
 ---
 
 ## Roadmap (Phase)
 
-| Phase   | 상태 | 범위                                     |
-| ------- | -- | -------------------------------------- |
-| Phase 0 | 완료 | UI/Adapter/테스트(로컬 동기 실행)               |
-| Phase 1 | 예정 | Docker/Compose 로컬 패리티                  |
-| Phase 2 | 예정 | K8s(Web + MySQL) 런타임 배포                |
-| Phase 3 | 예정 | Web → Job 오케스트레이션 + `/status/<run_id>` |
-| Phase 4 | 예정 | CI/CD + GitOps(Argo CD)                |
-| Phase 5 | 예정 | run_id 기반 관측성 검증 + demo                |
-| Phase 6 | 예정 | 문서/회고 정리                               |
+| Phase | 상태 | 범위 |
+|---|---|---|
+| Phase 0 | 완료 | 엔진 검증 + Flask 앱 + Adapter + 5탭 UI + 테스트 |
+| Phase 1 | 예정 | Dockerization & Local Parity (Dockerfile, Compose, `.env.example`, healthcheck) |
+| Phase 2 | 예정 | Kubernetes Runtime + Data Layer (Web Deployment, MySQL StatefulSet, ConfigMap/Secret, Ingress) |
+| Phase 3 | 예정 | Web → K8s Job Orchestration (`worker.py`, JobLauncher, `/status/<run_id>`, 결과/상태 MySQL persist) |
+| Phase 4 | 예정 | Automation & GitOps (GitHub Actions CI, Argo CD CD, tag promotion) |
+| Phase 5 | 예정 | Observability 검증(Rule 8) + `scripts/demo.sh` 데모 |
+| Phase 6 | 예정 | 문서화/회고 (architecture, ops guide, retrospective polish) |
 
 ---
 
@@ -243,3 +297,4 @@ stock_backtest/
 * 아키텍처 상세: [docs/architecture.md](docs/architecture.md)
 * 운영 가이드: [docs/ops-guide.md](docs/ops-guide.md)
 * UI 갤러리: [docs/screenshots.md](docs/screenshots.md)
+
