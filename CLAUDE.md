@@ -5,7 +5,7 @@
 | 항목 | 내용 |
 |---|---|
 | **Project Name** | Kubernetes-based Stock Backtesting Platform |
-| **Timeline** | 16일 (2026-02-04 ~ 2026-02-19) |
+| **Timeline** | 16일 |
 | **Purpose** | 강의 과제 + 클라우드 엔지니어링 면접 포트폴리오 |
 | **Core Goal** | 검증 완료된 Python 백테스트 엔진을 Docker 컨테이너로 감싸고, Kubernetes Job으로 실행하는 클라우드 네이티브 플랫폼 |
 
@@ -22,7 +22,21 @@
 
 ## 2. Project Status
 
-Active Phase: Phase 1
+Active Phase: Phase 2
+- Phase 1 ✅ Completed
+- Phase 2 🚧 In Progress
+
+### Phase 2 공통 규격 (K8s)
+- **namespace**: stock-backtest
+- **mysql**: service name `mysql` (ClusterIP), label `app=mysql`
+- **web**: deployment name `web`, label `app=web`
+- **ConfigMap**: name `web-config`
+- **Secret**: template name `web-secret` (실제 K8s 적용 시에도 이 이름 사용)
+- **ServiceAccount**: name `web-sa`
+- **Ingress host**: 로컬 환경이므로 생략 가능 (또는 `stock-backtest.local` 사용)
+- **Web env (환경변수 주입 규칙)**:
+  1. `DATABASE_URL` 우선 적용 (Phase 2 전환 핵심)
+  2. 없을 경우 `DB_HOST=mysql`, `DB_PORT=3306`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` 로 Fallback
 
 **Current Phase:** Phase-based planning (as of 2026-02-07).  
 — Phases 1–3 cover core platform; Phases 4–6 cover automation, observability, and polish.
@@ -32,8 +46,8 @@ Active Phase: Phase 1
 | Day 1-2 | ✅ Completed | Core engine verification, rules library, technical indicators, MVP pipeline |
 | Day 3 | ✅ Completed | Flask app structure (MVC), immutable engine integration, strategy persistence (SQLite + SQLAlchemy), core web routes & API contracts (`/run_backtest`, `/api/strategies`, `/health`) |
 | Day 3.9 | ✅ Completed | Advanced UI: VectorBT-style 5-tab dashboard, extended JSON schemas, adapter-layer metrics, portfolio visualization refactor (separate Orders & Trade PnL charts), cumulative return chart |
-| Phase 1 | 🚧 In Progress | Containerization & Local Parity (Docker, Compose, .env.example, healthcheck) |
-| Phase 2 | 📋 Planned | Kubernetes Runtime + Data Layer (Namespace, Deployment, MySQL StatefulSet, ConfigMap/Secret, Ingress) |
+| Phase 1 | ✅ Completed | Containerization & Local Parity (Docker, Compose, .env.example, healthcheck) |
+| Phase 2 | 🚧 In Progress | Kubernetes Runtime + Data Layer (Namespace, Deployment, MySQL StatefulSet, ConfigMap/Secret, Ingress) |
 | Phase 3 | 📋 Planned | Web → K8s Job Orchestration (worker entrypoint, job launcher, status polling, DB persistence) |
 | Phase 4 | 📋 Planned | Automation & GitOps (CI via GitHub Actions, CD via Argo CD) |
 | Phase 5 | 📋 Planned | Observability verification (Rule 8) & Demo Assets |
