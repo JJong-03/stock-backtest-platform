@@ -22,9 +22,11 @@
 
 ## 2. Project Status
 
-Active Phase: Phase 2
+Active Phase: Phase 3
 - Phase 1 ✅ Completed
-- Phase 2 🚧 In Progress
+- Phase 2 ✅ Completed
+- Phase 3 🚧 In Progress
+
 
 ### Phase 2 공통 규격 (K8s)
 - **namespace**: stock-backtest
@@ -47,8 +49,8 @@ Active Phase: Phase 2
 | Day 3 | ✅ Completed | Flask app structure (MVC), immutable engine integration, strategy persistence (SQLite + SQLAlchemy), core web routes & API contracts (`/run_backtest`, `/api/strategies`, `/health`) |
 | Day 3.9 | ✅ Completed | Advanced UI: VectorBT-style 5-tab dashboard, extended JSON schemas, adapter-layer metrics, portfolio visualization refactor (separate Orders & Trade PnL charts), cumulative return chart |
 | Phase 1 | ✅ Completed | Containerization & Local Parity (Docker, Compose, .env.example, healthcheck) |
-| Phase 2 | 🚧 In Progress | Kubernetes Runtime + Data Layer (Namespace, Deployment, MySQL StatefulSet, ConfigMap/Secret, Ingress) |
-| Phase 3 | 📋 Planned | Web → K8s Job Orchestration (worker entrypoint, job launcher, status polling, DB persistence) |
+| Phase 2 | ✅ Completed | Kubernetes Runtime + Data Layer (Namespace, Deployment, MySQL StatefulSet, ConfigMap/Secret, Ingress) |
+| Phase 3 | 🚧 In Progress| Web → K8s Job Orchestration (worker entrypoint, job launcher, status polling, DB persistence) |
 | Phase 4 | 📋 Planned | Automation & GitOps (CI via GitHub Actions, CD via Argo CD) |
 | Phase 5 | 📋 Planned | Observability verification (Rule 8) & Demo Assets |
 | Phase 6 | 📋 Planned | Documentation & Retrospective (architecture diagrams, ops guide, final polish) |
