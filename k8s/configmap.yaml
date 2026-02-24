@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-config
+  namespace: stock-backtest
+  labels:
+    app: web
+    app.kubernetes.io/name: stock-backtest
+data:
+  FLASK_DEBUG: "false"
+  LOG_LEVEL: "INFO"
+  DB_HOST: "mysql"
+  DB_PORT: "3306"
+  DB_NAME: "stock_backtest"
+  DB_USER: "stock_user"

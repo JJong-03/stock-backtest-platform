@@ -595,6 +595,8 @@ def health():
 
 
 if __name__ == "__main__":
+    # Local development only:
+    # Production (Gunicorn/K8s) starts via `app:app` import path, so this block does not run.
     with app.app_context():
         db.create_all()
     debug = os.environ.get("FLASK_DEBUG", "False").lower() == "true"
