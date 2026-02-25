@@ -40,6 +40,47 @@ Active Phase: Phase 3
   1. `DATABASE_URL` 우선 적용 (Phase 2 전환 핵심)
   2. 없을 경우 `DB_HOST=mysql`, `DB_PORT=3306`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` 로 Fallback
 
+### Phase 3 공통 규격 (Web → K8s Job Orchestration)
+
+- **namespace**: `stock-backtest` (Phase 2 동일)
+- **DB table**: `backtest_results` (MySQL, single source of truth)
+- **상태 머신**: `PENDING → RUNNING → SUCCEEDED/FAILED` (단방향)
+- **UTC timestamps**: `created_at`(Web), `started_at`/`completed_at`(Worker)
+- **오류 분류**
+  - `user_error` → Web에서 `PENDING → FAILED` (Job 생성 안 함, HTTP 400)
+  - `system_error` → Worker에서 `RUNNING → FAILED` 또는 Web에서 Job 생성 실패 시 `PENDING → FAILED` (HTTP 500)
+
+#### K8s Job 규격
+- **Job template file**: `k8s/worker-job-template.yaml`
+- **Job name 규칙**: `worker-<run_id_short>` (예: worker-1a2b3c4d)
+- **labels**
+  - `app=worker`
+  - `run_id=<uuid>`
+- **backoffLimit**: `1`
+- **ttlSecondsAfterFinished**: `86400` (실패 Job 24h 보존)
+- **restartPolicy**: `Never`
+
+#### Worker 실행 파라미터(환경변수)
+Worker는 아래 환경변수로만 입력을 받는다 (파일 I/O 금지):
+- `RUN_ID` (UUID4, 필수)
+- `TICKER` (CSV 파일명 기준: 예 `AAPL.csv`, 필수)
+- `RULE_TYPE` (예: RSI, MACD, RSI_MACD, 필수)
+- `PARAMS_JSON` (JSON string, 필수)
+- `START_DATE` (YYYY-MM-DD, 필수)
+- `END_DATE` (YYYY-MM-DD, 필수)
+- (선택/확장) `INITIAL_CAPITAL`, `FEE_RATE`, `SLIPPAGE_BPS`, `POSITION_SIZE`, `SIZE_TYPE`, `DIRECTION`, `TIMEFRAME`
+
+#### Reproducibility 필드(Worker가 저장)
+- `data_hash` (SHA-256 of `data/<TICKER>` CSV content, 엔진 실행 전 계산)
+
+#### Logging 규격 (Rule 8)
+- 모든 로그는 stdout/stderr
+- 모든 로그 라인은 `[run_id=<RUN_ID>]` 포함
+
+#### Web ↔ Worker 경계
+- Web: 입력 검증, `run_id` 발급, `PENDING` insert, Job 생성, `/status/<run_id>` 제공, 성공 시 Job 삭제
+- Worker: `RUNNING` 전이, 엔진 실행, adapter 파생, DB persist, `SUCCEEDED/FAILED` 전이, `error_message` 기록
+
 **Current Phase:** Phase-based planning (as of 2026-02-07).  
 — Phases 1–3 cover core platform; Phases 4–6 cover automation, observability, and polish.
 
@@ -340,7 +381,7 @@ The backtesting form exposes the following inputs:
 
 | Field | Type | Default | Notes |
 |-------|------|---------|-------|
-| Ticker | string | "AAPL" | Stock symbol |
+| Ticker | string | "AAPL.csv" | Stock symbol |
 | Start Date | date | - | YYYY-MM-DD format |
 | End Date | date | - | YYYY-MM-DD format |
 | Rule (`rule_type`) | dropdown | "RSI" | Options: RSI, MACD, RSI+MACD. Maps to `rule_type` in API request |
@@ -593,7 +634,7 @@ Web(Controller)과 Worker(Job) 간 JSON Schema는 **한번 정의되면 동결**
 {
   // Core fields
   "run_id": "uuid",
-  "ticker": "AAPL",
+  "ticker": "AAPL.csv",
   "rule_type": "RSI",             // Required: drives execution logic
   "params": {"period": 14, "oversold": 30, "overbought": 70},
   "rule_id": "RSI_14_30_70",     // Optional: helper slug for tracking/logging

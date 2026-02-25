@@ -28,6 +28,9 @@ spec:
                 name: web-config
             - secretRef:
                 name: web-secret
+          env:
+            - name: JOB_LAUNCHER_MODE
+              value: "K8S" # k8s or LOCAL // LOCAL은 개발용, K8S는 실제 클러스터에서 실행할 때 사용
           readinessProbe:
             httpGet:
               path: /health
