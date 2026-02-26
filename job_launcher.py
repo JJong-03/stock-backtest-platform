@@ -102,6 +102,8 @@ class K8sJobLauncher(JobLauncher):
         self._api = client.BatchV1Api()
 
     def launch(self, run_payload: Dict[str, Any]) -> None:
+        # python 객체로 job 스펙 조립 (yaml 템플릿 대신 코드로 작성하여 유연성↑)
+
         client = self._k8s_client
 
         env = [
@@ -145,16 +147,16 @@ class K8sJobLauncher(JobLauncher):
 
         container = client.V1Container(
             name="worker",
-            image=self.worker_image,
-            image_pull_policy="IfNotPresent",
-            command=["python", "worker.py"],
+            image=self.worker_image,            # 같은 이미지 재사용
+            image_pull_policy="IfNotPresent",   # Phase 4에서 GHCR:<git-sha>로 전환 예정
+            command=["python", "worker.py"],    # worker.py 실행 (컨테이너 내에서 worker.py가 존재한다고 가정)
             env=env,
             env_from=[
                 client.V1EnvFromSource(
-                    config_map_ref=client.V1ConfigMapEnvSource(name=self.configmap_name)
+                    config_map_ref=client.V1ConfigMapEnvSource(name=self.configmap_name) # DB 접속 정보 등 일반 설정
                 ),
                 client.V1EnvFromSource(
-                    secret_ref=client.V1SecretEnvSource(name=self.secret_name)
+                    secret_ref=client.V1SecretEnvSource(name=self.secret_name)           # DB 비밀번호 등 민감 정보
                 ),
             ],
         )

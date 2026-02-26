@@ -6,12 +6,12 @@ metadata:
   labels:
     app: mysql
 spec:
-  type: ClusterIP
+  type: ClusterIP # 외부 노출 안 함 # 노출할 때는 ingress나 LoadBalancer로 노출
   selector:
     app: mysql
   ports:
     - name: mysql
-      port: 3306
+      port: 3306  # web pod가 mysql:3306으로 접근
       targetPort: 3306
 ---
 apiVersion: apps/v1
@@ -52,9 +52,9 @@ spec:
                   key: DB_USER
             - name: MYSQL_PASSWORD
               valueFrom:
-                secretKeyRef:
+                secretKeyRef:             # Secret에서 값을 가져온다. DB_PASSWORD
                   name: web-secret
-                  key: DB_PASSWORD
+                  key: DB_PASSWORD        # Secret의 특정 key 값을 참조
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -90,7 +90,7 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
-  volumeClaimTemplates:
+  volumeClaimTemplates:       # pod 마다 고유 볼륨 요청
     - metadata:
         name: mysql-data
         labels:
@@ -100,4 +100,4 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 10Gi
+            storage: 10Gi     # 10GB PVC 자동 생성

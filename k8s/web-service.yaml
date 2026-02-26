@@ -6,10 +6,10 @@ metadata:
   labels:
     app: web
 spec:
-  type: ClusterIP
+  type: ClusterIP           # 외부 노출 안 함 # 노출할 때는 ingress나 LoadBalancer로 노출
   selector:
-    app: web
+    app: web                # app=web 레이블이 붙은 Pod들로 트래픽 분산
   ports:
     - name: http
-      port: 80
-      targetPort: http
+      port: 80              # 클러스터 내부에서 web:80으로 접근 가능, Service가 받는 포트 
+      targetPort: http      # pod의 5000 포트로 트래픽 전달 (containerPort: name: http)
