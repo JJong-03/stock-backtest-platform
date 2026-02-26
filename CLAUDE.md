@@ -25,8 +25,8 @@
 Active Phase: Phase 3
 - Phase 1 ✅ Completed
 - Phase 2 ✅ Completed
-- Phase 3 🚧 In Progress
-
+- Phase 3 ✅ Completed
+- Phase 4 🚧 In Progress
 
 ### Phase 2 공통 규격 (K8s)
 - **namespace**: stock-backtest
@@ -91,8 +91,8 @@ Worker는 아래 환경변수로만 입력을 받는다 (파일 I/O 금지):
 | Day 3.9 | ✅ Completed | Advanced UI: VectorBT-style 5-tab dashboard, extended JSON schemas, adapter-layer metrics, portfolio visualization refactor (separate Orders & Trade PnL charts), cumulative return chart |
 | Phase 1 | ✅ Completed | Containerization & Local Parity (Docker, Compose, .env.example, healthcheck) |
 | Phase 2 | ✅ Completed | Kubernetes Runtime + Data Layer (Namespace, Deployment, MySQL StatefulSet, ConfigMap/Secret, Ingress) |
-| Phase 3 | 🚧 In Progress| Web → K8s Job Orchestration (worker entrypoint, job launcher, status polling, DB persistence) |
-| Phase 4 | 📋 Planned | Automation & GitOps (CI via GitHub Actions, CD via Argo CD) |
+| Phase 3 | ✅ Completed | Web → K8s Job Orchestration (worker entrypoint, job launcher, status polling, DB persistence) |
+| Phase 4 | 🚧 In Progress | Automation & GitOps (CI via GitHub Actions, CD via Argo CD) |
 | Phase 5 | 📋 Planned | Observability verification (Rule 8) & Demo Assets |
 | Phase 6 | 📋 Planned | Documentation & Retrospective (architecture diagrams, ops guide, final polish) |
 
