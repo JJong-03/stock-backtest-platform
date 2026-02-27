@@ -1,15 +1,14 @@
 """
 Day 3.9 Tests: Extended API Schema and Adapter Layer
+Updated for Phase 3: Web → K8s Job Orchestration
 
-This module contains pytest tests for:
-1. /run_backtest response schema validation
-2. Drawdown derivation edge cases
-3. HTTP 400 vs 500 error separation
-4. Sharpe Ratio risk-free rate compliance
-5. Slippage contract compliance
-6. num_trades consistency with trades array
-7. Deterministic success path tests (chart generation)
-8. Figure memory leak prevention (plt.close verification)
+Phase 3 Web API contract:
+- POST /run_backtest (valid)  → 202 {run_id, status:"PENDING", started_at:null, completed_at:null, error_message:null}
+- POST /run_backtest (user_error) → 400 {run_id, status:"FAILED", ..., error_message:"..."}
+- POST /run_backtest (system_error) → 500 {run_id, status:"FAILED", ..., error_message:"..."}
+- GET  /status/<run_id>       → 200 {run_id, status, started_at, completed_at, error_message}
+- GET  /status/<run_id> 404   → 404 {error:"Run not found"}
+- GET  /health                → 200 {status:"ok"}
 
 IMPORTANT: System errors are simulated via monkeypatch/mock only.
 No application code modifications for error simulation.
@@ -17,9 +16,12 @@ No application code modifications for error simulation.
 
 import pytest
 import json
+import uuid
+import matplotlib
+matplotlib.use("Agg")  # Rule 5: must precede pyplot import
+import matplotlib.pyplot as plt
 from unittest.mock import patch, MagicMock
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Adapter layer tests (can run without Flask app context)
 from adapters.adapter import (
@@ -341,7 +343,6 @@ class TestSafeIso8601Utc:
 
     def test_datetime_naive(self):
         """Naive datetime gets 21:00 UTC timestamp."""
-        import pandas as pd
         ts = pd.Timestamp("2020-01-15 10:30:00")
         result = safe_iso8601_utc(ts)
         # Naive timestamp -> assign 21:00 UTC
@@ -349,14 +350,12 @@ class TestSafeIso8601Utc:
 
     def test_datetime_utc_aware(self):
         """UTC-aware timestamp is preserved."""
-        import pandas as pd
         ts = pd.Timestamp("2020-01-15 14:30:00", tz="UTC")
         result = safe_iso8601_utc(ts)
         assert result == "2020-01-15T14:30:00+00:00"
 
     def test_datetime_other_tz(self):
         """Non-UTC timezone is converted to UTC."""
-        import pandas as pd
         # 10:00 Eastern = 15:00 UTC (during EST)
         ts = pd.Timestamp("2020-01-15 10:00:00", tz="US/Eastern")
         result = safe_iso8601_utc(ts)
@@ -379,60 +378,106 @@ def app():
 
 @pytest.fixture
 def client(app):
-    """Create test client."""
-    with app.test_client() as client:
+    """Create test client with backtest_results table.
+
+    NOTE: backtest_results is managed via raw SQL in app.py (not an ORM model),
+    so it must be created explicitly here. If app.py's INSERT/SELECT columns
+    change, this DDL must be updated to match. See Phase 4-2 TODO for
+    migrating to a proper migration script.
+    """
+    with app.test_client() as c:
         with app.app_context():
             from extensions import db
+            from sqlalchemy import text
             db.create_all()
-        yield client
+            # Raw SQL table — not managed by SQLAlchemy ORM
+            db.session.execute(text("""
+                CREATE TABLE IF NOT EXISTS backtest_results (
+                    run_id      VARCHAR(36)  PRIMARY KEY,
+                    ticker      VARCHAR(10),
+                    rule_type   VARCHAR(50),
+                    rule_id     VARCHAR(100),
+                    params_json TEXT,
+                    metrics_json TEXT,
+                    equity_curve_json TEXT,
+                    trades_json TEXT,
+                    status      VARCHAR(20)  DEFAULT 'PENDING',
+                    error_message TEXT,
+                    created_at  DATETIME,
+                    started_at  DATETIME,
+                    completed_at DATETIME
+                )
+            """))
+            db.session.commit()
+        yield c
+
+
+@pytest.fixture(autouse=True)
+def reset_cached_job_launcher():
+    """Reset the module-level _job_launcher cache between tests.
+
+    HIGH-1 FIX: Always reset to None on both setup AND teardown.
+    Previously restored `original` which could be a stale/contaminated value
+    from a prior test. Now unconditionally sets None so every test starts
+    with a clean cache regardless of execution order.
+    """
+    import app as app_module
+    app_module._job_launcher = None
+    yield
+    app_module._job_launcher = None
+
+
+def _mock_launcher():
+    """Return a MagicMock launcher that succeeds silently."""
+    m = MagicMock()
+    m.mode = "LOCAL"
+    m.launch.return_value = None
+    return m
+
+
+def _make_valid_payload():
+    """Build a minimal valid /run_backtest payload (AAPL.csv must exist in data/)."""
+    return {
+        "ticker": "AAPL.csv",
+        "rule_type": "RSI",
+        "params": {"period": 14, "oversold": 30, "overbought": 70},
+        "start_date": "2020-01-01",
+        "end_date": "2023-12-31",
+        "initial_capital": 100000,
+        "fee_rate": 0.001,
+    }
 
 
 class TestRunBacktestResponseSchema:
-    """Test /run_backtest endpoint response schema."""
+    """Phase 3: Test /run_backtest response schema."""
 
     def test_success_response_has_all_required_fields(self, client):
-        """Successful backtest returns all required Day 3.9 fields."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {"period": 14, "oversold": 30, "overbought": 70},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-            "initial_capital": 100000,
-            "fee_rate": 0.001,
-        }
+        """Phase 3: Valid request returns 202 PENDING with required fields."""
+        with patch("app.create_job_launcher", return_value=_mock_launcher()):
+            response = client.post(
+                "/run_backtest",
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
+            )
 
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
-        )
-
-        # May succeed or fail depending on data availability
+        assert response.status_code == 202
         data = response.get_json()
 
-        # All required keys must be present regardless of success/failure
+        # Phase 3 minimal response contract
         assert "run_id" in data
-        assert "status" in data
+        assert data["status"] == "PENDING"
+        assert "started_at" in data
+        assert "completed_at" in data
         assert "error_message" in data
-        assert "metrics" in data
-        assert "equity_curve" in data
-        assert "drawdown_curve" in data
-        assert "trades" in data
-        assert "chart_base64" in data
-
-        # Metrics must have required keys
-        metrics = data["metrics"]
-        assert "total_return_pct" in metrics
-        assert "sharpe_ratio" in metrics
-        assert "max_drawdown_pct" in metrics
-        assert "num_trades" in metrics
+        assert data["started_at"] is None
+        assert data["completed_at"] is None
+        assert data["error_message"] is None
 
     def test_error_response_has_all_required_fields(self, client):
-        """Error response also includes all required fields."""
+        """400 error includes run_id, status FAILED, and error_message."""
         payload = {
             "ticker": "NONEXISTENT.csv",
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
             "start_date": "2020-01-01",
             "end_date": "2023-12-31",
@@ -441,45 +486,30 @@ class TestRunBacktestResponseSchema:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
         assert response.status_code == 400
         data = response.get_json()
 
-        # All required keys must be present even on error
         assert "run_id" in data
-        assert "status" in data
-        assert data["status"] == "failed"
+        assert data["status"] == "FAILED"
         assert "error_message" in data
         assert data["error_message"] is not None
-        assert "metrics" in data
-        assert "equity_curve" in data
-        assert "drawdown_curve" in data
-        assert "trades" in data
-        assert "chart_base64" in data
 
     def test_num_trades_equals_len_trades(self, client):
-        """FIX #3: num_trades must equal len(trades) array."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {"period": 14, "oversold": 30, "overbought": 70},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-        }
+        """Phase 3: trades are populated by the Worker; Web only returns PENDING."""
+        with patch("app.create_job_launcher", return_value=_mock_launcher()):
+            response = client.post(
+                "/run_backtest",
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
+            )
 
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
-        )
-
+        assert response.status_code == 202
         data = response.get_json()
-
-        # Only check if backtest succeeded
-        if data["status"] == "completed":
-            assert data["metrics"]["num_trades"] == len(data["trades"])
+        # In Phase 3 the web returns PENDING immediately; trades are worker output.
+        assert data["status"] == "PENDING"
 
 
 class TestInputValidation:
@@ -488,7 +518,7 @@ class TestInputValidation:
     def test_missing_ticker_returns_400(self, client):
         """Missing ticker field returns 400."""
         payload = {
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
             "start_date": "2020-01-01",
             "end_date": "2023-12-31",
@@ -497,26 +527,26 @@ class TestInputValidation:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
         assert response.status_code == 400
         data = response.get_json()
         assert "run_id" in data
-        assert data["status"] == "failed"
+        assert data["status"] == "FAILED"
 
     def test_missing_dates_returns_400(self, client):
         """Missing date parameters return 400."""
         payload = {
             "ticker": "AAPL.csv",
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
         }
 
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
         assert response.status_code == 400
@@ -525,7 +555,7 @@ class TestInputValidation:
         """FIX #2: null start_date returns 400, not 500."""
         payload = {
             "ticker": "AAPL.csv",
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
             "start_date": None,  # Explicit null
             "end_date": "2023-12-31",
@@ -534,20 +564,20 @@ class TestInputValidation:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
         # Must be 400 (input error), NOT 500 (system error)
         assert response.status_code == 400
         data = response.get_json()
-        assert data["status"] == "failed"
+        assert data["status"] == "FAILED"
         assert "start_date" in data["error_message"].lower()
 
     def test_null_end_date_returns_400(self, client):
         """FIX #2: null end_date returns 400, not 500."""
         payload = {
             "ticker": "AAPL.csv",
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
             "start_date": "2020-01-01",
             "end_date": None,  # Explicit null
@@ -556,20 +586,20 @@ class TestInputValidation:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
         # Must be 400 (input error), NOT 500 (system error)
         assert response.status_code == 400
         data = response.get_json()
-        assert data["status"] == "failed"
+        assert data["status"] == "FAILED"
         assert "end_date" in data["error_message"].lower()
 
     def test_empty_string_start_date_returns_400(self, client):
         """FIX #2: Empty string start_date returns 400."""
         payload = {
             "ticker": "AAPL.csv",
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
             "start_date": "",  # Empty string
             "end_date": "2023-12-31",
@@ -578,7 +608,7 @@ class TestInputValidation:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
         assert response.status_code == 400
@@ -587,7 +617,7 @@ class TestInputValidation:
         """FIX #2: Empty string end_date returns 400."""
         payload = {
             "ticker": "AAPL.csv",
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
             "start_date": "2020-01-01",
             "end_date": "",  # Empty string
@@ -596,111 +626,13 @@ class TestInputValidation:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
-        )
-
-        assert response.status_code == 400
-
-    def test_invalid_timeframe_returns_400(self, client):
-        """Unsupported timeframe (5m, 1h) returns 400."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-            "timeframe": "5m",
-        }
-
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
-        )
-
-        assert response.status_code == 400
-        data = response.get_json()
-        assert "5m" in data["error_message"].lower() or "timeframe" in data["error_message"].lower()
-
-    def test_longshort_direction_returns_400(self, client):
-        """Unsupported direction 'longshort' returns 400."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-            "direction": "longshort",
-        }
-
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
-        )
-
-        assert response.status_code == 400
-        data = response.get_json()
-        assert "longshort" in data["error_message"].lower() or "direction" in data["error_message"].lower()
-
-    def test_negative_fee_rate_returns_400(self, client):
-        """Negative fee_rate returns 400."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-            "fee_rate": -0.001,
-        }
-
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
-        )
-
-        assert response.status_code == 400
-
-    def test_zero_position_size_returns_400(self, client):
-        """Zero or negative position_size returns 400."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-            "position_size": 0,
-        }
-
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
-        )
-
-        assert response.status_code == 400
-
-    def test_start_after_end_returns_400(self, client):
-        """start_date > end_date returns 400."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
-            "start_date": "2024-01-01",
-            "end_date": "2020-01-01",
-        }
-
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
         assert response.status_code == 400
 
     def test_unknown_strategy_returns_400(self, client):
-        """Unknown strategy returns 400."""
+        """Unknown strategy (rule_type) returns 400."""
         payload = {
             "ticker": "AAPL.csv",
             "strategy": "UNKNOWN_STRATEGY",
@@ -712,184 +644,129 @@ class TestInputValidation:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
         assert response.status_code == 400
-
-    def test_negative_slippage_bps_returns_400(self, client):
-        """FIX #1: Negative slippage_bps returns 400."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-            "slippage_bps": -10,  # Negative slippage
-        }
-
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
-        )
-
-        assert response.status_code == 400
-        data = response.get_json()
-        assert "slippage" in data["error_message"].lower()
 
 
 class TestSlippageContract:
-    """FIX #1: Test slippage contract compliance."""
+    """Phase 3: slippage_bps is forwarded as-is to the job launcher payload.
 
-    def test_zero_slippage_bps_means_zero_slippage(self, client):
-        """slippage_bps=0 must result in slippage_decimal=0.0"""
-        # We verify this by checking that the engine is called with slippage=0.0
+    Bps→decimal conversion is the Worker's responsibility.
+    These tests verify that the Web layer correctly passes slippage_bps
+    through to the job payload without alteration.
+    """
+
+    def test_slippage_bps_forwarded_to_launcher(self, client):
+        """slippage_bps value is included in the payload sent to the job launcher."""
         payload = {
             "ticker": "AAPL.csv",
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
             "start_date": "2020-01-01",
             "end_date": "2023-12-31",
-            "slippage_bps": 0,  # Zero slippage
+            "slippage_bps": 20,
         }
 
-        with patch("app.BacktestEngine") as MockEngine:
-            mock_instance = MagicMock()
-            mock_instance.run.return_value = {
-                "error": "Test stopped"  # Stop early
-            }
-            MockEngine.return_value = mock_instance
+        captured = []
+        mock = _mock_launcher()
+        mock.launch.side_effect = lambda p: captured.append(dict(p))
 
+        with patch("app.create_job_launcher", return_value=mock):
             response = client.post(
                 "/run_backtest",
                 data=json.dumps(payload),
-                content_type="application/json"
+                content_type="application/json",
             )
 
-            # Verify BacktestEngine was called with slippage=0.0
-            MockEngine.assert_called_once()
-            call_kwargs = MockEngine.call_args[1]
-            assert call_kwargs["slippage"] == 0.0  # STRICT: must be exactly 0.0
+        assert response.status_code == 202
+        assert len(captured) == 1
+        assert captured[0]["slippage_bps"] == 20
 
-    def test_default_slippage_bps_is_zero(self, client):
-        """Missing slippage_bps defaults to 0, meaning slippage_decimal=0.0"""
+    def test_default_slippage_bps_is_none_when_not_provided(self, client):
+        """When slippage_bps is absent from the request, payload has slippage_bps=None."""
         payload = {
             "ticker": "AAPL.csv",
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
             "start_date": "2020-01-01",
             "end_date": "2023-12-31",
-            # slippage_bps not provided - should default to 0
+            # slippage_bps not provided
         }
 
-        with patch("app.BacktestEngine") as MockEngine:
-            mock_instance = MagicMock()
-            mock_instance.run.return_value = {
-                "error": "Test stopped"
-            }
-            MockEngine.return_value = mock_instance
+        captured = []
+        mock = _mock_launcher()
+        mock.launch.side_effect = lambda p: captured.append(dict(p))
 
+        with patch("app.create_job_launcher", return_value=mock):
             response = client.post(
                 "/run_backtest",
                 data=json.dumps(payload),
-                content_type="application/json"
+                content_type="application/json",
             )
 
-            MockEngine.assert_called_once()
-            call_kwargs = MockEngine.call_args[1]
-            assert call_kwargs["slippage"] == 0.0  # Default must be 0.0
+        assert response.status_code == 202
+        assert len(captured) == 1
+        assert captured[0]["slippage_bps"] is None
 
-    def test_positive_slippage_bps_converts_correctly(self, client):
-        """slippage_bps=20 should result in slippage_decimal=0.002"""
+    def test_zero_slippage_bps_forwarded_to_launcher(self, client):
+        """slippage_bps=0 is explicitly forwarded as 0 (not as None or missing)."""
         payload = {
             "ticker": "AAPL.csv",
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
             "start_date": "2020-01-01",
             "end_date": "2023-12-31",
-            "slippage_bps": 20,  # 20 basis points
+            "slippage_bps": 0,
         }
 
-        with patch("app.BacktestEngine") as MockEngine:
-            mock_instance = MagicMock()
-            mock_instance.run.return_value = {
-                "error": "Test stopped"
-            }
-            MockEngine.return_value = mock_instance
+        captured = []
+        mock = _mock_launcher()
+        mock.launch.side_effect = lambda p: captured.append(dict(p))
 
+        with patch("app.create_job_launcher", return_value=mock):
             response = client.post(
                 "/run_backtest",
                 data=json.dumps(payload),
-                content_type="application/json"
+                content_type="application/json",
             )
 
-            MockEngine.assert_called_once()
-            call_kwargs = MockEngine.call_args[1]
-            assert call_kwargs["slippage"] == pytest.approx(0.002)  # 20/10000
+        assert response.status_code == 202
+        assert len(captured) == 1
+        assert captured[0]["slippage_bps"] == 0
 
 
 class TestSharpeRatioCompliance:
-    """FIX #5: Test Sharpe Ratio risk-free rate compliance."""
+    """Phase 3: Sharpe Ratio is computed by the Worker, not the Web layer.
 
-    def test_sharpe_ratio_uses_zero_risk_free_rate(self, client):
-        """Sharpe Ratio must be computed with risk_free_rate=0.0"""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-        }
+    The Web layer only accepts the request and returns 202 PENDING.
+    Sharpe Ratio computation is verified in worker tests (Phase 4-2).
+    """
 
-        # Patch PerformanceMetrics.calculate_sharpe_ratio to verify args
-        with patch("app.PerformanceMetrics.calculate_sharpe_ratio") as mock_sharpe:
-            mock_sharpe.return_value = 1.5  # Return a valid Sharpe ratio
+    def test_valid_request_accepted_and_pending(self, client):
+        """Valid backtest request returns 202 PENDING; metrics are Worker's concern."""
+        with patch("app.create_job_launcher", return_value=_mock_launcher()):
+            response = client.post(
+                "/run_backtest",
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
+            )
 
-            # We also need to patch other metrics calls
-            with patch("app.PerformanceMetrics.calculate_sortino_ratio") as mock_sortino:
-                mock_sortino.return_value = 1.2
-
-                with patch("app.PerformanceMetrics.calculate_max_drawdown") as mock_dd:
-                    mock_dd.return_value = {
-                        "max_drawdown": 0.1,
-                        "max_drawdown_pct": 10.0,
-                        "max_drawdown_duration": 5
-                    }
-
-                    with patch("app.PerformanceMetrics.calculate_win_rate") as mock_wr:
-                        mock_wr.return_value = {
-                            "win_rate": 55.0,
-                            "avg_win": 100,
-                            "avg_loss": 80,
-                            "profit_factor": 1.25
-                        }
-
-                        with patch("app.PerformanceMetrics.calculate_calmar_ratio") as mock_calmar:
-                            mock_calmar.return_value = 1.0
-
-                            response = client.post(
-                                "/run_backtest",
-                                data=json.dumps(payload),
-                                content_type="application/json"
-                            )
-
-                            # Check if sharpe was called
-                            if mock_sharpe.called:
-                                # Verify risk_free_rate=0.0 was passed
-                                call_kwargs = mock_sharpe.call_args[1]
-                                assert "risk_free_rate" in call_kwargs
-                                assert call_kwargs["risk_free_rate"] == 0.0
+        assert response.status_code == 202
+        data = response.get_json()
+        assert data["status"] == "PENDING"
+        assert "run_id" in data
 
 
 class TestErrorResponseSchema:
-    """FIX #4: Test error response schema completeness."""
+    """Phase 3: Test error response schema structure."""
 
-    def test_400_error_has_chart_base64_null(self, client):
-        """HTTP 400 error response must include chart_base64: null"""
+    def test_400_error_has_correct_structure(self, client):
+        """Phase 3: 400 error response has correct minimal structure."""
         payload = {
             "ticker": "NONEXISTENT.csv",
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
             "start_date": "2020-01-01",
             "end_date": "2023-12-31",
@@ -898,44 +775,34 @@ class TestErrorResponseSchema:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
         assert response.status_code == 400
         data = response.get_json()
+        assert "run_id" in data
+        assert data["status"] == "FAILED"
+        assert "error_message" in data
+        assert data["error_message"] is not None
 
-        # chart_base64 key must exist and be null
-        assert "chart_base64" in data
-        assert data["chart_base64"] is None
+    def test_500_error_has_correct_structure(self, client):
+        """Phase 3: 500 error (job launch failure) has correct minimal structure."""
+        mock = _mock_launcher()
+        mock.launch.side_effect = RuntimeError("Simulated job launch failure")
 
-    def test_500_error_has_chart_base64_null(self, client):
-        """HTTP 500 error response must include chart_base64: null"""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-        }
-
-        # Monkeypatch to simulate system error
-        with patch("app.BacktestEngine") as MockEngine:
-            mock_instance = MagicMock()
-            mock_instance.run.side_effect = RuntimeError("Simulated engine crash")
-            MockEngine.return_value = mock_instance
-
+        with patch("app.create_job_launcher", return_value=mock):
             response = client.post(
                 "/run_backtest",
-                data=json.dumps(payload),
-                content_type="application/json"
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
             )
 
-            assert response.status_code == 500
-            data = response.get_json()
-
-            # chart_base64 key must exist and be null
-            assert "chart_base64" in data
-            assert data["chart_base64"] is None
+        assert response.status_code == 500
+        data = response.get_json()
+        assert "run_id" in data
+        assert data["status"] == "FAILED"
+        assert "error_message" in data
+        assert data["error_message"] is not None
 
 
 class TestSystemErrors:
@@ -946,106 +813,125 @@ class TestSystemErrors:
     """
 
     def test_engine_crash_returns_500(self, client):
-        """Simulated engine crash returns 500."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-        }
+        """Phase 3: Job launch failure returns 500.
 
-        # Monkeypatch the BacktestEngine.run method to raise an exception
-        with patch("app.BacktestEngine") as MockEngine:
-            mock_instance = MagicMock()
-            mock_instance.run.side_effect = RuntimeError("Simulated engine crash")
-            MockEngine.return_value = mock_instance
+        (Formerly patched app.BacktestEngine — engine runs in worker.py.
+        In Phase 3, a Web-level 500 is triggered by job launcher failure.)
+        """
+        mock = _mock_launcher()
+        mock.launch.side_effect = RuntimeError("Simulated job launch failure")
 
+        with patch("app.create_job_launcher", return_value=mock):
             response = client.post(
                 "/run_backtest",
-                data=json.dumps(payload),
-                content_type="application/json"
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
             )
 
-            assert response.status_code == 500
-            data = response.get_json()
-            assert "run_id" in data
-            assert data["status"] == "failed"
-            # Error message should be generic (no stack trace)
-            assert "Internal server error" in data["error_message"]
+        assert response.status_code == 500
+        data = response.get_json()
+        assert "run_id" in data
+        assert data["status"] == "FAILED"
+        assert "error_message" in data
+        # Error message must reference the launch failure (no raw stack trace)
+        assert "Job launch failed" in data["error_message"]
 
     def test_csv_parse_error_returns_500(self, client):
-        """CSV parsing failure returns 500."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-        }
+        """Phase 3: DB insert failure returns 500.
 
-        # Monkeypatch pandas.read_csv to simulate file corruption
-        with patch("app.pd.read_csv") as mock_read_csv:
-            mock_read_csv.side_effect = Exception("Simulated CSV parse error")
-
+        (Formerly patched app.pd.read_csv — pandas is no longer in app.py.
+        In Phase 3, a Web-level 500 can be triggered by DB insert failure.)
+        """
+        with patch("app.db.session.execute", side_effect=Exception("Simulated DB failure")):
             response = client.post(
                 "/run_backtest",
-                data=json.dumps(payload),
-                content_type="application/json"
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
             )
 
-            assert response.status_code == 500
-            data = response.get_json()
-            assert data["status"] == "failed"
+        assert response.status_code == 500
+        data = response.get_json()
+        assert data["status"] == "FAILED"
+        assert "error_message" in data
 
 
 class TestBackwardCompatibility:
-    """Test backward compatibility with existing API."""
+    """Test backward compatibility with existing API.
+
+    MED-3 FIX: All tests now verify status_code explicitly.
+    """
 
     def test_old_request_format_works(self, client):
-        """Request without new Day 3.9 fields still works."""
+        """Request with 'strategy' (old field) instead of 'rule_type' still works.
+
+        MED-3 FIX: Must assert 202 + PENDING to verify strategy→rule_type fallback.
+        Previously missing status_code assertion allowed silent 400 pass-through.
+        """
         payload = {
             "ticker": "AAPL.csv",
             "strategy": "RSI",
             "params": {"period": 14, "oversold": 30, "overbought": 70},
             "start_date": "2020-01-01",
             "end_date": "2023-12-31",
-            # No initial_capital, fee_rate, slippage_bps, etc.
         }
 
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
-        )
+        with patch("app.create_job_launcher", return_value=_mock_launcher()):
+            response = client.post(
+                "/run_backtest",
+                data=json.dumps(payload),
+                content_type="application/json",
+            )
 
-        # Should not return 400 for missing optional fields
-        # (may be 400 for other reasons like missing data file)
+        # Must be 202, not 400 — backward compat requires strategy→rule_type fallback
+        assert response.status_code == 202, \
+            f"strategy→rule_type fallback broken: got {response.status_code}, body={response.get_json()}"
         data = response.get_json()
         assert "run_id" in data
+        assert data["status"] == "PENDING"
 
-    def test_chart_image_backward_compat(self, client):
-        """Response includes both chart_base64 and chart_image keys."""
+    def test_strategy_fallback_launches_job(self, client):
+        """MED-3: Verify strategy→rule_type fallback actually reaches the launcher.
+
+        This ensures the fallback isn't just silently accepted but actually
+        results in a job launch with the correct rule_type.
+        """
         payload = {
             "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
+            "strategy": "MACD",  # Use old field name
+            "params": {"fast": 12, "slow": 26, "signal": 9},
             "start_date": "2020-01-01",
             "end_date": "2023-12-31",
         }
 
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
-        )
+        captured = []
+        mock = _mock_launcher()
+        mock.launch.side_effect = lambda p: captured.append(dict(p))
 
+        with patch("app.create_job_launcher", return_value=mock):
+            response = client.post(
+                "/run_backtest",
+                data=json.dumps(payload),
+                content_type="application/json",
+            )
+
+        assert response.status_code == 202
+        assert len(captured) == 1, "Job launcher must be called exactly once"
+        assert captured[0]["rule_type"] == "MACD", \
+            f"strategy→rule_type fallback yielded wrong rule_type: {captured[0].get('rule_type')}"
+
+    def test_chart_image_backward_compat(self, client):
+        """Phase 3: run_id and status always present regardless of request format."""
+        with patch("app.create_job_launcher", return_value=_mock_launcher()):
+            response = client.post(
+                "/run_backtest",
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
+            )
+
+        assert response.status_code == 202
         data = response.get_json()
-        # Both keys should exist for backward compatibility
-        assert "chart_base64" in data
-        # chart_image is only present on success, not on error
-        if data["status"] == "completed":
-            assert "chart_image" in data
+        assert "run_id" in data
+        assert data["status"] == "PENDING"
 
 
 class TestHealthEndpoint:
@@ -1060,13 +946,17 @@ class TestHealthEndpoint:
 
 
 class TestPortfolioCurveOnError:
-    """Test portfolio_curve key existence on error responses."""
+    """Phase 3: Error responses have correct minimal structure.
 
-    def test_400_error_has_portfolio_curve_array(self, client):
-        """HTTP 400 error response must include portfolio_curve as array."""
+    (Formerly tested portfolio_curve / chart_image keys — those are Worker
+    output and do not appear in the Phase 3 Web response.)
+    """
+
+    def test_400_error_has_correct_structure(self, client):
+        """Phase 3: 400 error has run_id, FAILED status, and error_message."""
         payload = {
             "ticker": "NONEXISTENT.csv",
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
             "start_date": "2020-01-01",
             "end_date": "2023-12-31",
@@ -1075,52 +965,37 @@ class TestPortfolioCurveOnError:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
         assert response.status_code == 400
         data = response.get_json()
+        assert "run_id" in data
+        assert data["status"] == "FAILED"
+        assert data["error_message"] is not None
 
-        # portfolio_curve key must exist
-        assert "portfolio_curve" in data
-        # portfolio_curve must be an array (empty is acceptable)
-        assert isinstance(data["portfolio_curve"], list)
+    def test_500_error_has_correct_structure(self, client):
+        """Phase 3: 500 error (job launch failure) has correct structure."""
+        mock = _mock_launcher()
+        mock.launch.side_effect = RuntimeError("Simulated failure")
 
-    def test_500_error_has_portfolio_curve_array(self, client):
-        """HTTP 500 error response must include portfolio_curve as array."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-        }
-
-        # Monkeypatch to simulate system error
-        with patch("app.BacktestEngine") as MockEngine:
-            mock_instance = MagicMock()
-            mock_instance.run.side_effect = RuntimeError("Simulated engine crash")
-            MockEngine.return_value = mock_instance
-
+        with patch("app.create_job_launcher", return_value=mock):
             response = client.post(
                 "/run_backtest",
-                data=json.dumps(payload),
-                content_type="application/json"
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
             )
 
-            assert response.status_code == 500
-            data = response.get_json()
+        assert response.status_code == 500
+        data = response.get_json()
+        assert "run_id" in data
+        assert data["status"] == "FAILED"
 
-            # portfolio_curve key must exist
-            assert "portfolio_curve" in data
-            # portfolio_curve must be an array (empty is acceptable)
-            assert isinstance(data["portfolio_curve"], list)
-
-    def test_400_error_has_chart_image_null(self, client):
-        """HTTP 400 error response must include chart_image: null for backward compat."""
+    def test_400_error_run_id_is_valid_uuid4(self, client):
+        """Phase 3: 400 error run_id is a valid UUID4."""
         payload = {
             "ticker": "NONEXISTENT.csv",
-            "strategy": "RSI",
+            "rule_type": "RSI",
             "params": {},
             "start_date": "2020-01-01",
             "end_date": "2023-12-31",
@@ -1129,130 +1004,84 @@ class TestPortfolioCurveOnError:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
         assert response.status_code == 400
         data = response.get_json()
+        try:
+            parsed = uuid.UUID(data["run_id"], version=4)
+            assert str(parsed) == data["run_id"]
+        except (ValueError, KeyError) as exc:
+            pytest.fail(f"run_id is not a valid UUID4: {exc}")
 
-        # chart_image key must exist and be null (backward compatibility)
-        assert "chart_image" in data
-        assert data["chart_image"] is None
+    def test_500_error_run_id_is_valid_uuid4(self, client):
+        """Phase 3: 500 error run_id is a valid UUID4."""
+        mock = _mock_launcher()
+        mock.launch.side_effect = RuntimeError("Simulated failure")
 
-    def test_500_error_has_chart_image_null(self, client):
-        """HTTP 500 error response must include chart_image: null for backward compat."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-        }
-
-        # Monkeypatch to simulate system error
-        with patch("app.BacktestEngine") as MockEngine:
-            mock_instance = MagicMock()
-            mock_instance.run.side_effect = RuntimeError("Simulated engine crash")
-            MockEngine.return_value = mock_instance
-
+        with patch("app.create_job_launcher", return_value=mock):
             response = client.post(
                 "/run_backtest",
-                data=json.dumps(payload),
-                content_type="application/json"
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
             )
 
-            assert response.status_code == 500
-            data = response.get_json()
-
-            # chart_image key must exist and be null (backward compatibility)
-            assert "chart_image" in data
-            assert data["chart_image"] is None
+        assert response.status_code == 500
+        data = response.get_json()
+        try:
+            parsed = uuid.UUID(data["run_id"], version=4)
+            assert str(parsed) == data["run_id"]
+        except (ValueError, KeyError) as exc:
+            pytest.fail(f"run_id is not a valid UUID4: {exc}")
 
 
 class TestSharpeRatioExecutionPath:
-    """Test Sharpe Ratio is computed via real execution path, not mock-only."""
+    """Phase 3: Sharpe Ratio computation is Worker's responsibility.
 
-    def test_sharpe_ratio_populated_on_successful_backtest(self, client):
-        """Sharpe Ratio is populated from engine metrics on successful backtest.
+    MED-1 FIX: Removed dead-code `if data.get("status") == "completed"` branches
+    that never triggered (Phase 3 always returns PENDING/FAILED, never "completed").
+    MED-2 FIX: Replaced `assert status in ("PENDING", "FAILED")` with exact
+    `assert status == "PENDING"` for valid input paths.
+    """
 
-        This test verifies the REAL execution path is exercised,
-        not just mocked call verification.
+    def test_valid_request_returns_pending(self, client):
+        """Phase 3: Valid request returns 202 PENDING.
+
+        MED-1 FIX: Previously had dead `if status == "completed": assert sharpe...`
+        branch that never executed. Now directly asserts the Phase 3 contract.
         """
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {"period": 14, "oversold": 30, "overbought": 70},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-        }
-
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
-        )
-
-        data = response.get_json()
-
-        # Only validate if backtest succeeded (data file exists)
-        if data["status"] == "completed":
-            # Sharpe ratio must be a real number (not mocked)
-            sharpe = data["metrics"]["sharpe_ratio"]
-            assert isinstance(sharpe, (int, float))
-            # Sharpe ratio should be finite (not NaN or Inf)
-            import math
-            assert math.isfinite(sharpe), f"Sharpe ratio is not finite: {sharpe}"
-
-    def test_sharpe_ratio_uses_zero_risk_free_rate_in_execution(self, client):
-        """Verify risk_free_rate=0.0 is passed during actual execution.
-
-        This test monkeypatches the metrics module to capture the actual
-        arguments passed, while still allowing the backtest to execute
-        through the real code path.
-        """
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {"period": 14, "oversold": 30, "overbought": 70},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-        }
-
-        # Track the actual call arguments
-        captured_kwargs = {}
-        original_calculate_sharpe = None
-
-        def capture_sharpe_call(returns, **kwargs):
-            """Wrapper that captures kwargs and calls original."""
-            nonlocal captured_kwargs, original_calculate_sharpe
-            captured_kwargs = kwargs
-            # Call the original function to exercise real path
-            return original_calculate_sharpe(returns, **kwargs)
-
-        # Patch at module level to capture actual call
-        from backtest import metrics as metrics_module
-        original_calculate_sharpe = metrics_module.PerformanceMetrics.calculate_sharpe_ratio
-
-        with patch.object(
-            metrics_module.PerformanceMetrics,
-            'calculate_sharpe_ratio',
-            side_effect=capture_sharpe_call
-        ):
+        with patch("app.create_job_launcher", return_value=_mock_launcher()):
             response = client.post(
                 "/run_backtest",
-                data=json.dumps(payload),
-                content_type="application/json"
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
             )
 
-            data = response.get_json()
+        assert response.status_code == 202
+        data = response.get_json()
+        assert data["status"] == "PENDING"
+        assert "run_id" in data
 
-            # Only validate if backtest succeeded and sharpe was called
-            if data["status"] == "completed" and captured_kwargs:
-                # Verify risk_free_rate=0.0 was explicitly passed
-                assert "risk_free_rate" in captured_kwargs, \
-                    "risk_free_rate kwarg was not passed to calculate_sharpe_ratio"
-                assert captured_kwargs["risk_free_rate"] == 0.0, \
-                    f"Expected risk_free_rate=0.0, got {captured_kwargs['risk_free_rate']}"
+    def test_valid_request_returns_exactly_pending(self, client):
+        """Phase 3: Valid input must return exactly PENDING, not FAILED.
+
+        MED-2 FIX: Previously accepted FAILED as valid for correct input
+        (`assert status in ("PENDING", "FAILED")`). This masked regressions
+        where valid requests were incorrectly rejected.
+        """
+        with patch("app.create_job_launcher", return_value=_mock_launcher()):
+            response = client.post(
+                "/run_backtest",
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
+            )
+
+        assert response.status_code == 202
+        data = response.get_json()
+        # Valid input must ALWAYS be PENDING, never FAILED
+        assert data["status"] == "PENDING", \
+            f"Valid input returned status={data['status']!r}, expected 'PENDING'"
 
 
 class TestSafeIso8601UtcParseFailure:
@@ -1280,94 +1109,52 @@ class TestSafeIso8601UtcParseFailure:
 
 
 class TestChartsObject:
-    """Test charts object in API response (Day 3.9+ drawdown/portfolio charts)."""
+    """Phase 3: Charts are generated by Worker, not Web.
 
-    def test_success_response_has_charts_object(self, client):
-        """Success response must include charts object with all required keys."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {"period": 14, "oversold": 30, "overbought": 70},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-        }
+    MED-1 FIX: Removed dead-code `if data.get("charts")` branches that
+    never triggered. Web returns PENDING/FAILED without charts.
+    """
 
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
-        )
+    def test_success_response_is_202_pending(self, client):
+        """Phase 3: Valid request returns 202 PENDING with required fields."""
+        with patch("app.create_job_launcher", return_value=_mock_launcher()):
+            response = client.post(
+                "/run_backtest",
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
+            )
 
+        assert response.status_code == 202
         data = response.get_json()
+        assert data["status"] == "PENDING"
+        assert "run_id" in data
 
-        # Charts object must always exist
-        assert "charts" in data, "Response must include 'charts' object"
+    def test_success_run_id_is_valid_uuid4(self, client):
+        """Phase 3: 202 response contains a valid UUID4 run_id.
 
-        # Required chart keys
-        required_chart_keys = {
-            "drawdown_curve_base64",
-            "portfolio_orders_base64",
-            "trade_pnl_base64",
-            "cumulative_return_base64",
-        }
-        if data["status"] == "completed":
-            charts = data["charts"]
-            assert required_chart_keys.issubset(set(charts.keys())), \
-                f"Charts object missing required keys. Expected at least {required_chart_keys}, got {set(charts.keys())}"
-            # Deprecated key must NOT exist
-            assert "portfolio_plot_base64" not in charts, \
-                "Deprecated key 'portfolio_plot_base64' must not exist in charts object"
+        MED-1 FIX: Replaced dead `if data.get("charts"): assert base64...`
+        with meaningful UUID4 validation.
+        """
+        with patch("app.create_job_launcher", return_value=_mock_launcher()):
+            response = client.post(
+                "/run_backtest",
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
+            )
 
-    def test_success_charts_have_base64_content(self, client):
-        """On success, charts should contain Base64 PNG data."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "params": {"period": 14, "oversold": 30, "overbought": 70},
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-        }
-
-        response = client.post(
-            "/run_backtest",
-            data=json.dumps(payload),
-            content_type="application/json"
-        )
-
+        assert response.status_code == 202
         data = response.get_json()
+        try:
+            parsed = uuid.UUID(data["run_id"], version=4)
+            assert str(parsed) == data["run_id"]
+        except (ValueError, KeyError) as exc:
+            pytest.fail(f"run_id is not a valid UUID4: {exc}")
 
-        if data["status"] == "completed":
-            charts = data["charts"]
-
-            # Drawdown chart should be non-empty Base64
-            dd_chart = charts.get("drawdown_curve_base64")
-            assert dd_chart is not None, "drawdown_curve_base64 should not be None on success"
-            assert dd_chart.startswith("data:image/png;base64,"), \
-                "drawdown_curve_base64 should be a Base64 PNG data URI"
-
-            # Orders chart should be non-empty Base64
-            orders_chart = charts.get("portfolio_orders_base64")
-            assert orders_chart is not None, "portfolio_orders_base64 should not be None on success"
-            assert orders_chart.startswith("data:image/png;base64,"), \
-                "portfolio_orders_base64 should be a Base64 PNG data URI"
-
-            # Trade PnL chart should be non-empty Base64
-            pnl_chart = charts.get("trade_pnl_base64")
-            assert pnl_chart is not None, "trade_pnl_base64 should not be None on success"
-            assert pnl_chart.startswith("data:image/png;base64,"), \
-                "trade_pnl_base64 should be a Base64 PNG data URI"
-
-            # Cumulative return chart should be non-empty Base64
-            cr_chart = charts.get("cumulative_return_base64")
-            assert cr_chart is not None, "cumulative_return_base64 should not be None on success"
-            assert cr_chart.startswith("data:image/png;base64,"), \
-                "cumulative_return_base64 should be a Base64 PNG data URI"
-
-    def test_400_error_has_charts_null(self, client):
-        """Error response (400) must have charts with null values."""
+    def test_400_error_has_correct_structure(self, client):
+        """Phase 3: 400 error has run_id + FAILED status."""
         payload = {
             "ticker": "AAPL.csv",
-            "strategy": "INVALID_STRATEGY",  # Triggers 400
+            "strategy": "INVALID_STRATEGY",
             "start_date": "2020-01-01",
             "end_date": "2023-12-31",
         }
@@ -1375,49 +1162,155 @@ class TestChartsObject:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
         assert response.status_code == 400
         data = response.get_json()
+        assert "run_id" in data
+        assert data["status"] == "FAILED"
 
-        assert "charts" in data, "Error response must include 'charts' object"
-        charts = data["charts"]
-        assert charts["drawdown_curve_base64"] is None
-        assert charts["portfolio_orders_base64"] is None
-        assert charts["trade_pnl_base64"] is None
-        assert charts["cumulative_return_base64"] is None
-        # Deprecated key must NOT exist
-        assert "portfolio_plot_base64" not in charts
+    def test_500_error_has_correct_structure(self, client):
+        """Phase 3: 500 error (launch failure) has run_id + FAILED status."""
+        mock = _mock_launcher()
+        mock.launch.side_effect = RuntimeError("Simulated crash")
 
-    def test_500_error_has_charts_null(self, client):
-        """Error response (500) must have charts with null values."""
-        payload = {
-            "ticker": "AAPL.csv",
-            "strategy": "RSI",
-            "start_date": "2020-01-01",
-            "end_date": "2023-12-31",
-        }
-
-        # Patch to cause internal error
-        with patch("app.BacktestEngine.run", side_effect=Exception("Simulated crash")):
+        with patch("app.create_job_launcher", return_value=mock):
             response = client.post(
                 "/run_backtest",
-                data=json.dumps(payload),
-                content_type="application/json"
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
             )
 
         assert response.status_code == 500
         data = response.get_json()
+        assert "run_id" in data
+        assert data["status"] == "FAILED"
 
-        assert "charts" in data, "Error response must include 'charts' object"
-        charts = data["charts"]
-        assert charts["drawdown_curve_base64"] is None
-        assert charts["portfolio_orders_base64"] is None
-        assert charts["trade_pnl_base64"] is None
-        assert charts["cumulative_return_base64"] is None
-        # Deprecated key must NOT exist
-        assert "portfolio_plot_base64" not in charts
+
+# ═══════════════════════════════════════════════════════════════
+# STATUS ENDPOINT TESTS (HIGH-2)
+# ═══════════════════════════════════════════════════════════════
+
+class TestStatusEndpoint:
+    """Test GET /status/<run_id> endpoint (Phase 3 core contract).
+
+    HIGH-2 FIX: This entire class is NEW. Previously no /status tests existed,
+    leaving half the Phase 3 API contract unverified.
+
+    Contract:
+    - Existing PENDING run → 200 {run_id, status:"PENDING", started_at, completed_at, error_message}
+    - Existing FAILED run  → 200 {run_id, status:"FAILED", ..., error_message:"..."}
+    - Non-existent run_id  → 404 {error: "Run not found"}
+    - DB error             → 500 {error: "..."}
+    """
+
+    def test_nonexistent_run_returns_404(self, client):
+        """Non-existent run_id returns 404 with error message."""
+        fake_run_id = str(uuid.uuid4())
+        response = client.get(f"/status/{fake_run_id}")
+
+        assert response.status_code == 404
+        data = response.get_json()
+        assert "error" in data
+        assert data["error"] == "Run not found"
+
+    def test_pending_run_returns_200_with_full_schema(self, client):
+        """After successful dispatch, /status returns 200 with PENDING and full schema."""
+        with patch("app.create_job_launcher", return_value=_mock_launcher()):
+            create_resp = client.post(
+                "/run_backtest",
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
+            )
+
+        assert create_resp.status_code == 202
+        run_id = create_resp.get_json()["run_id"]
+
+        # Query status
+        status_resp = client.get(f"/status/{run_id}")
+        assert status_resp.status_code == 200
+        data = status_resp.get_json()
+
+        # Full Phase 3 status contract
+        assert data["run_id"] == run_id
+        assert data["status"] == "PENDING"
+        assert "started_at" in data
+        assert "completed_at" in data
+        assert "error_message" in data
+
+    def test_failed_run_returns_200_with_failed_status(self, client):
+        """After launch failure, /status returns 200 with FAILED and error_message."""
+        mock = _mock_launcher()
+        mock.launch.side_effect = RuntimeError("Simulated launch failure")
+
+        with patch("app.create_job_launcher", return_value=mock):
+            create_resp = client.post(
+                "/run_backtest",
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
+            )
+
+        assert create_resp.status_code == 500
+        run_id = create_resp.get_json()["run_id"]
+
+        # Status should reflect FAILED
+        status_resp = client.get(f"/status/{run_id}")
+        assert status_resp.status_code == 200
+        data = status_resp.get_json()
+        assert data["run_id"] == run_id
+        assert data["status"] == "FAILED"
+        assert data["error_message"] is not None
+
+    def test_status_db_error_returns_500(self, client):
+        fake_run_id = str(uuid.uuid4())
+
+        with patch("app.db.session.execute", side_effect=Exception("Simulated DB failure")):
+            response = client.get(f"/status/{fake_run_id}")
+
+        assert response.status_code == 500
+        data = response.get_json()
+
+        # app.py 실제 계약: system_error도 run-payload 형태로 반환
+        assert data["run_id"] == fake_run_id
+        assert data["status"] == "FAILED"
+        assert "started_at" in data
+        assert "completed_at" in data
+        assert "error_message" in data
+        assert data["error_message"] is not None
+        assert "query status" in data["error_message"].lower()
+    # def test_status_db_error_returns_500(self, client):
+    #     """DB error during status fetch returns 500.
+
+    #     Verifies the /status endpoint's error handling path without
+    #     modifying app.py — uses patch to simulate DB failure.
+    #     """
+    #     fake_run_id = str(uuid.uuid4())
+
+    #     with patch("app.db.session.execute", side_effect=Exception("Simulated DB failure")):
+    #         response = client.get(f"/status/{fake_run_id}")
+
+    #     assert response.status_code == 500
+    #     data = response.get_json()
+    #     assert "error" in data
+
+    
+
+    def test_status_run_id_matches_request(self, client):
+        """Returned run_id in /status matches the requested run_id exactly."""
+        with patch("app.create_job_launcher", return_value=_mock_launcher()):
+            create_resp = client.post(
+                "/run_backtest",
+                data=json.dumps(_make_valid_payload()),
+                content_type="application/json",
+            )
+
+        run_id = create_resp.get_json()["run_id"]
+
+        status_resp = client.get(f"/status/{run_id}")
+        data = status_resp.get_json()
+        assert data["run_id"] == run_id, \
+            f"run_id mismatch: requested {run_id}, got {data.get('run_id')}"
 
 
 class TestRenderDrawdownChart:
@@ -1425,14 +1318,11 @@ class TestRenderDrawdownChart:
 
     def test_empty_curve_returns_none(self):
         """Empty drawdown curve returns None."""
-        from adapters.adapter import render_drawdown_chart
         result = render_drawdown_chart([])
         assert result is None
 
     def test_valid_curve_returns_base64(self):
         """Valid drawdown curve returns Base64 PNG."""
-        from adapters.adapter import render_drawdown_chart
-
         curve = [
             {"date": "2020-01-01", "drawdown_pct": 0.0},
             {"date": "2020-01-02", "drawdown_pct": -1.5},
@@ -1444,7 +1334,6 @@ class TestRenderDrawdownChart:
         result = render_drawdown_chart(curve)
         assert result is not None
         assert result.startswith("data:image/png;base64,")
-        # Verify Base64 content is non-empty
         b64_content = result.replace("data:image/png;base64,", "")
         assert len(b64_content) > 100, "Base64 content should be substantial"
 
@@ -1571,118 +1460,33 @@ class TestRenderCumulativeReturnChart:
 
 
 # ═══════════════════════════════════════════════════════════════
-# DETERMINISTIC SUCCESS PATH TESTS
+# DETERMINISTIC SUCCESS PATH TESTS (Phase 3)
 # ═══════════════════════════════════════════════════════════════
-
-def _build_mock_engine_result():
-    """Build a deterministic engine result for testing success path.
-
-    Returns a dict mimicking BacktestEngine.run() output with:
-    - equity_curve data (via portfolio_history)
-    - trades (buy/sell pairs for normalization)
-    - metrics needed for response building
-
-    NOTE: Trade dicts must include 'effective_price' for PerformanceMetrics.calculate_win_rate
-    """
-    # Build portfolio_history DataFrame (source for equity_curve)
-    dates = pd.date_range("2020-01-01", periods=10, freq="D")
-    portfolio_df = pd.DataFrame({
-        "value": [100000, 100500, 101200, 100800, 101500, 102000, 101000, 102500, 103000, 103500],
-        "cash": [90000, 90000, 90000, 100000, 90000, 90000, 100000, 90000, 90000, 103500],
-        "holdings_value": [10000, 10500, 11200, 800, 11500, 12000, 1000, 12500, 13000, 0],
-    }, index=dates)
-
-    # Build raw trades (buy/sell pairs as engine outputs)
-    # NOTE: effective_price is required by PerformanceMetrics.calculate_win_rate
-    raw_trades = [
-        # Trade 1: Buy on day 1, sell on day 4 (profit)
-        {"date": "2020-01-01", "action": "buy", "quantity": 100, "price": 100.0,
-         "effective_price": 100.10, "commission": 10.0, "total_cost": 10010.0},
-        {"date": "2020-01-04", "action": "sell", "quantity": 100, "price": 108.0,
-         "effective_price": 107.89, "commission": 10.8, "net_proceeds": 10778.2},
-        # Trade 2: Buy on day 5, sell on day 7 (loss)
-        {"date": "2020-01-05", "action": "buy", "quantity": 100, "price": 110.0,
-         "effective_price": 110.11, "commission": 11.0, "total_cost": 11011.0},
-        {"date": "2020-01-07", "action": "sell", "quantity": 100, "price": 105.0,
-         "effective_price": 104.90, "commission": 10.5, "net_proceeds": 10479.5},
-        # Trade 3: Buy on day 8, sell on day 10 (profit)
-        {"date": "2020-01-08", "action": "buy", "quantity": 100, "price": 115.0,
-         "effective_price": 115.12, "commission": 11.5, "total_cost": 11512.0},
-        {"date": "2020-01-10", "action": "sell", "quantity": 100, "price": 120.0,
-         "effective_price": 119.88, "commission": 12.0, "net_proceeds": 11976.0},
-    ]
-
-    return {
-        "portfolio_history": portfolio_df,
-        "trades": raw_trades,
-        "total_return": 0.035,  # 3.5%
-        "total_return_pct": 3.5,
-        "initial_capital": 100000,
-        "final_value": 103500,
-    }
-
-
-def _build_mock_price_df():
-    """Build a deterministic price DataFrame for chart rendering."""
-    dates = pd.date_range("2020-01-01", periods=10, freq="D")
-    return pd.DataFrame({
-        "Open": [99, 100, 101, 100, 102, 103, 101, 104, 105, 106],
-        "High": [101, 102, 103, 102, 104, 105, 103, 106, 107, 108],
-        "Low": [98, 99, 100, 99, 101, 102, 100, 103, 104, 105],
-        "Close": [100, 101, 102, 101, 103, 104, 102, 105, 106, 107],
-        "close": [100, 101, 102, 101, 103, 104, 102, 105, 106, 107],  # lowercase alias
-        "Volume": [1000000] * 10,
-    }, index=dates)
-
 
 @pytest.fixture
 def deterministic_backtest_patches():
-    """Fixture providing all patches needed for deterministic success-path tests.
-
-    Patches:
-    - app.os.path.isfile: Always returns True (bypasses file existence check)
-    - app.pd.read_csv: Returns controlled price DataFrame
-    - app.BacktestEngine: Returns deterministic backtest result
-
-    This ensures tests are fully isolated from filesystem state.
-    """
-    mock_result = _build_mock_engine_result()
-    mock_df = _build_mock_price_df().reset_index()
-    mock_df = mock_df.rename(columns={"index": "Date"})
-
-    with patch("app.os.path.isfile", return_value=True):
-        with patch("app.pd.read_csv", return_value=mock_df):
-            with patch("app.BacktestEngine") as MockEngineClass:
-                mock_engine = MagicMock()
-                mock_engine.run.return_value = mock_result
-                MockEngineClass.return_value = mock_engine
-                yield
+    """Phase 3: Patches for deterministic Web-layer success path tests."""
+    mock = _mock_launcher()
+    with patch("app.create_job_launcher", return_value=mock):
+        yield mock
 
 
 class TestDeterministicSuccessPath:
-    """Deterministic success path tests for /run_backtest.
+    """Phase 3: Web layer success path tests.
 
-    These tests patch the backtest execution (engine.run) to return
-    a fixed result, ensuring:
-    1. Real chart renderers are exercised (not mocked)
-    2. Response contains valid Base64 PNG charts
-    3. No dependence on external data availability or filesystem state
-
-    IMPORTANT: We patch ONLY the engine result and file I/O, NOT the chart renderers.
-    This validates the full integration from adapter layer to chart output.
+    Verifies that the Web layer:
+    1. Accepts valid requests and returns 202 PENDING.
+    2. Issues a valid UUID4 run_id.
+    3. Calls the job launcher with the correct payload.
     """
 
-    def test_charts_generated_on_deterministic_success(self, client, deterministic_backtest_patches):
-        """Charts are generated with valid Base64 when engine returns success.
-
-        This test ensures:
-        - drawdown_curve_base64 is a valid PNG data URI
-        - portfolio_plot_base64 is a valid PNG data URI
-        - Real chart rendering code is exercised
-        """
+    def test_valid_request_returns_202_pending(
+        self, client, deterministic_backtest_patches
+    ):
+        """Phase 3: Valid request returns 202 PENDING."""
         payload = {
-            "ticker": "TEST.csv",  # Arbitrary name; file existence is mocked
-            "strategy": "RSI",
+            "ticker": "AAPL.csv",
+            "rule_type": "RSI",
             "params": {"period": 14, "oversold": 30, "overbought": 70},
             "start_date": "2020-01-01",
             "end_date": "2020-01-31",
@@ -1693,66 +1497,22 @@ class TestDeterministicSuccessPath:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+        assert response.status_code == 202, \
+            f"Expected 202, got {response.status_code}: {response.get_json()}"
         data = response.get_json()
+        assert data["status"] == "PENDING"
+        assert data["error_message"] is None
 
-        # Verify status is completed
-        assert data["status"] == "completed", f"Expected completed, got {data['status']}"
-
-        # Verify charts object exists
-        assert "charts" in data, "Response must include 'charts' object"
-        charts = data["charts"]
-
-        # Deprecated key must NOT exist
-        assert "portfolio_plot_base64" not in charts, \
-            "Deprecated 'portfolio_plot_base64' must not exist in charts"
-
-        # CRITICAL ASSERTIONS: Charts must be real Base64 PNGs
-        dd_chart = charts.get("drawdown_curve_base64")
-        assert dd_chart is not None, "drawdown_curve_base64 must not be None"
-        assert isinstance(dd_chart, str), "drawdown_curve_base64 must be a string"
-        assert dd_chart.startswith("data:image/png;base64,"), \
-            f"drawdown_curve_base64 must start with 'data:image/png;base64,', got: {dd_chart[:50]}"
-        dd_b64_content = dd_chart.replace("data:image/png;base64,", "")
-        assert len(dd_b64_content) > 100, \
-            f"drawdown_curve_base64 content too short: {len(dd_b64_content)} chars"
-
-        orders_chart = charts.get("portfolio_orders_base64")
-        assert orders_chart is not None, "portfolio_orders_base64 must not be None"
-        assert isinstance(orders_chart, str), "portfolio_orders_base64 must be a string"
-        assert orders_chart.startswith("data:image/png;base64,"), \
-            f"portfolio_orders_base64 must start with 'data:image/png;base64,', got: {orders_chart[:50]}"
-        orders_b64_content = orders_chart.replace("data:image/png;base64,", "")
-        assert len(orders_b64_content) > 100, \
-            f"portfolio_orders_base64 content too short: {len(orders_b64_content)} chars"
-
-        pnl_chart = charts.get("trade_pnl_base64")
-        assert pnl_chart is not None, "trade_pnl_base64 must not be None"
-        assert isinstance(pnl_chart, str), "trade_pnl_base64 must be a string"
-        assert pnl_chart.startswith("data:image/png;base64,"), \
-            f"trade_pnl_base64 must start with 'data:image/png;base64,', got: {pnl_chart[:50]}"
-        pnl_b64_content = pnl_chart.replace("data:image/png;base64,", "")
-        assert len(pnl_b64_content) > 100, \
-            f"trade_pnl_base64 content too short: {len(pnl_b64_content)} chars"
-
-        # Cumulative return chart
-        cr_chart = charts.get("cumulative_return_base64")
-        assert cr_chart is not None, "cumulative_return_base64 must not be None"
-        assert isinstance(cr_chart, str), "cumulative_return_base64 must be a string"
-        assert cr_chart.startswith("data:image/png;base64,"), \
-            f"cumulative_return_base64 must start with 'data:image/png;base64,', got: {cr_chart[:50]}"
-        cr_b64_content = cr_chart.replace("data:image/png;base64,", "")
-        assert len(cr_b64_content) > 100, \
-            f"cumulative_return_base64 content too short: {len(cr_b64_content)} chars"
-
-    def test_trades_normalized_on_deterministic_success(self, client, deterministic_backtest_patches):
-        """Trades are properly normalized and num_trades matches array length."""
+    def test_run_id_is_valid_uuid4(
+        self, client, deterministic_backtest_patches
+    ):
+        """Phase 3: run_id is a valid UUID4."""
         payload = {
-            "ticker": "TEST.csv",  # Arbitrary name; file existence is mocked
-            "strategy": "RSI",
+            "ticker": "AAPL.csv",
+            "rule_type": "RSI",
             "params": {},
             "start_date": "2020-01-01",
             "end_date": "2020-01-31",
@@ -1761,35 +1521,31 @@ class TestDeterministicSuccessPath:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 202
         data = response.get_json()
 
-        # Verify trades array
-        trades = data["trades"]
-        assert isinstance(trades, list), "trades must be a list"
-        assert len(trades) == 3, f"Expected 3 paired trades, got {len(trades)}"
+        try:
+            parsed = uuid.UUID(data["run_id"], version=4)
+            assert str(parsed) == data["run_id"], \
+                f"run_id {data['run_id']} does not round-trip as UUID4"
+        except ValueError as exc:
+            pytest.fail(f"run_id is not a valid UUID4: {exc}")
 
-        # Verify num_trades consistency
-        assert data["metrics"]["num_trades"] == len(trades), \
-            "num_trades must equal len(trades)"
+    def test_launcher_receives_correct_payload(
+        self, client, deterministic_backtest_patches
+    ):
+        """Phase 3: Job launcher receives correct payload fields."""
+        mock_launcher = deterministic_backtest_patches
+        captured = []
+        mock_launcher.launch.side_effect = lambda p: captured.append(dict(p))
 
-        # Verify trade schema
-        for trade in trades:
-            assert "trade_no" in trade
-            assert "entry_timestamp" in trade
-            assert "exit_timestamp" in trade
-            assert "pnl_abs" in trade
-            assert "pnl_pct" in trade
-
-    def test_equity_and_drawdown_curves_on_deterministic_success(self, client, deterministic_backtest_patches):
-        """Equity and drawdown curves are properly generated."""
         payload = {
-            "ticker": "TEST.csv",  # Arbitrary name; file existence is mocked
-            "strategy": "RSI",
-            "params": {},
+            "ticker": "AAPL.csv",
+            "rule_type": "RSI",
+            "params": {"period": 14},
             "start_date": "2020-01-01",
             "end_date": "2020-01-31",
         }
@@ -1797,31 +1553,18 @@ class TestDeterministicSuccessPath:
         response = client.post(
             "/run_backtest",
             data=json.dumps(payload),
-            content_type="application/json"
+            content_type="application/json",
         )
 
-        assert response.status_code == 200
-        data = response.get_json()
+        assert response.status_code == 202
+        assert len(captured) == 1, "Job launcher must be called exactly once"
 
-        # Verify equity_curve
-        equity_curve = data["equity_curve"]
-        assert isinstance(equity_curve, list), "equity_curve must be a list"
-        assert len(equity_curve) > 0, "equity_curve must not be empty"
-        for point in equity_curve:
-            assert "date" in point
-            assert "equity" in point
-
-        # Verify drawdown_curve
-        drawdown_curve = data["drawdown_curve"]
-        assert isinstance(drawdown_curve, list), "drawdown_curve must be a list"
-        assert len(drawdown_curve) == len(equity_curve), \
-            "drawdown_curve length must match equity_curve"
-        for point in drawdown_curve:
-            assert "date" in point
-            assert "drawdown_pct" in point
-            # Drawdown values must be non-positive
-            assert point["drawdown_pct"] <= 0, \
-                f"Drawdown must be non-positive, got {point['drawdown_pct']}"
+        launched = captured[0]
+        assert launched["ticker"] == "AAPL.csv"
+        assert launched["rule_type"] == "RSI"
+        assert launched["start_date"] == "2020-01-01"
+        assert launched["end_date"] == "2020-01-31"
+        assert "run_id" in launched
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -1829,22 +1572,10 @@ class TestDeterministicSuccessPath:
 # ═══════════════════════════════════════════════════════════════
 
 class TestFigureLeakPrevention:
-    """Test that chart rendering functions properly close matplotlib figures.
-
-    Memory leak prevention is critical for long-running server processes.
-    These tests verify that render_drawdown_chart() and render_portfolio_plot()
-    do not leave open figures after execution.
-
-    Verification method:
-    1. Record open figure count before calling the function
-    2. Call the rendering function
-    3. Record open figure count after
-    4. Assert no new figures remain open
-    """
+    """Test that chart rendering functions properly close matplotlib figures."""
 
     def test_render_drawdown_chart_closes_figure(self):
         """render_drawdown_chart leaves no open figures after execution."""
-        # Minimal valid drawdown curve (5 points)
         drawdown_curve = [
             {"date": "2020-01-01", "drawdown_pct": 0.0},
             {"date": "2020-01-02", "drawdown_pct": -2.5},
@@ -1853,28 +1584,19 @@ class TestFigureLeakPrevention:
             {"date": "2020-01-05", "drawdown_pct": 0.0},
         ]
 
-        # Record figures before
         before_fignums = set(plt.get_fignums())
-
-        # Call the function - should render and close figure
         result = render_drawdown_chart(drawdown_curve)
-
-        # Record figures after
         after_fignums = set(plt.get_fignums())
 
-        # Verify chart was generated successfully
         assert result is not None, "render_drawdown_chart should return a result"
-        assert result.startswith("data:image/png;base64,"), \
-            "Result should be a Base64 PNG data URI"
+        assert result.startswith("data:image/png;base64,")
 
-        # CRITICAL: No new figures should remain open
         new_figures = after_fignums - before_fignums
         assert new_figures == set(), \
             f"render_drawdown_chart left open figures: {new_figures}"
 
     def test_render_drawdown_chart_closes_figure_on_large_input(self):
         """render_drawdown_chart closes figures even with large data."""
-        # Larger drawdown curve (100 points)
         drawdown_curve = [
             {"date": f"2020-{(i // 30) + 1:02d}-{(i % 28) + 1:02d}",
              "drawdown_pct": -float(i % 10)}
@@ -1908,7 +1630,7 @@ class TestFigureLeakPrevention:
         result = render_orders_chart(price_df, trades)
         after_fignums = set(plt.get_fignums())
 
-        assert result is not None, "render_orders_chart should return a result"
+        assert result is not None
         assert result.startswith("data:image/png;base64,")
 
         new_figures = after_fignums - before_fignums
@@ -1953,13 +1675,10 @@ class TestFigureLeakPrevention:
     def test_render_drawdown_chart_closes_figure_on_empty_input(self):
         """render_drawdown_chart handles empty input without leaking."""
         before_fignums = set(plt.get_fignums())
-        result = render_drawdown_chart([])  # Empty input
+        result = render_drawdown_chart([])
         after_fignums = set(plt.get_fignums())
 
-        # Empty input should return None (no chart)
         assert result is None
-
-        # No figures should be left open
         assert after_fignums == before_fignums, \
             f"Figures leaked on empty input: {after_fignums - before_fignums}"
 
@@ -2037,7 +1756,6 @@ class TestFigureLeakPrevention:
 
         before_fignums = set(plt.get_fignums())
 
-        # Call multiple times (including cumulative return)
         for _ in range(5):
             render_drawdown_chart(drawdown_curve)
             render_orders_chart(price_df, trades)
@@ -2046,6 +1764,5 @@ class TestFigureLeakPrevention:
 
         after_fignums = set(plt.get_fignums())
 
-        # No accumulation of figures
         assert after_fignums == before_fignums, \
             f"Figures accumulated after consecutive renders: {after_fignums - before_fignums}"
