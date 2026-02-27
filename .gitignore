@@ -13,12 +13,16 @@ venv/
 
 # Environment variables
 .env
+.env.*
+!.env.example
 
 # Flask instance folder (contains strategies.db)
 instance/
 
 # SQLite databases (must NEVER be committed)
 *.db
+strategies.db
+k8s/secret.yaml
 
 # OS files
 .DS_Store
@@ -40,3 +44,4 @@ data/*.csv
 # Logs
 logs/
 *.log
+.omx/

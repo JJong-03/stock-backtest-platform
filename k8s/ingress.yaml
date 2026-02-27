@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web
+  namespace: stock-backtest
+  labels:
+    app: web
+spec:
+  rules:
+    - host: stock-backtest.local  # 이 도메인으로 들어오면
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web # web Service로 트래픽 전달
+                port:
+                  number: 80

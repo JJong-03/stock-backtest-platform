@@ -274,9 +274,9 @@ stock_backtest/
 | Phase | 상태 | 범위 |
 |---|---|---|
 | Phase 0 | 완료 | 엔진 검증 + Flask 앱 + Adapter + 5탭 UI + 테스트 |
-| Phase 1 | 예정 | Dockerization & Local Parity (Dockerfile, Compose, `.env.example`, healthcheck) |
-| Phase 2 | 예정 | Kubernetes Runtime + Data Layer (Web Deployment, MySQL StatefulSet, ConfigMap/Secret, Ingress) |
-| Phase 3 | 예정 | Web → K8s Job Orchestration (`worker.py`, JobLauncher, `/status/<run_id>`, 결과/상태 MySQL persist) |
+| Phase 1 | 완료 | Dockerization & Local Parity (Dockerfile, Compose, `.env.example`, healthcheck) |
+| Phase 2 | 완료 | Kubernetes Runtime + Data Layer (Web Deployment, MySQL StatefulSet, ConfigMap/Secret, Ingress) |
+| Phase 3 | 완료 | Web → K8s Job Orchestration (`worker.py`, JobLauncher, `/status/<run_id>`, 결과/상태 MySQL persist) |
 | Phase 4 | 예정 | Automation & GitOps (GitHub Actions CI, Argo CD CD, tag promotion) |
 | Phase 5 | 예정 | Observability 검증(Rule 8) + `scripts/demo.sh` 데모 |
 | Phase 6 | 예정 | 문서화/회고 (architecture, ops guide, retrospective polish) |

@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: stock-backtest
+  labels:
+    app: web
+spec:
+  replicas: 1 # Pod 1개로 시작, 필요에 따라 조정 가능 (HPA 추가시 최소값)
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      serviceAccountName: web-sa # rbac.yaml에서 정의한 ServiceAccount 사용
+      containers:
+        - name: web
+          image: stock-web:local # Phase 4에서 GHCR로 푸시한 이미지로 변경 예정
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: web-config # ConfigMap에서 환경 변수 가져오기 (비민감 환경변수)
+            - secretRef:
+                name: web-secret # Secret에서 환경 변수 가져오기 (민감 정보) - secret-template.yaml 참조
+          env:
+            - name: JOB_LAUNCHER_MODE
+              value: "K8S" # k8s or LOCAL // LOCAL은 개발용, K8S는 실제 클러스터에서 실행할 때 사용
+          readinessProbe:  # 트래픽 받을 준비되었는지 체크
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:  # 애플리케이션이 살아있는지 체크, 실패 시 재시작
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:       # 스케줄러가 Node에 Pod를 배치할 때 참조하는 최소 리소스 요구량
+              cpu: 100m     # 0.1 CPU (100 millicores)
+              memory: 256Mi
+            limits:         # 이 이상 사용시 컨테이너가 제한됨 (OOMKill 방지)
+              cpu: 500m
+              memory: 512Mi
