@@ -34,7 +34,7 @@
 
 ---
 
-## Architecture
+## Architecture Overview
 
 ![Architecture Overview](https://raw.githubusercontent.com/wiki/msp-architect-2026/kim-jongwon/images/10_architecture_overview.png)
 
