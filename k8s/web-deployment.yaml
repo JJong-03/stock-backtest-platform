@@ -23,7 +23,7 @@ spec:
       serviceAccountName: web-sa # rbac.yaml에서 정의한 ServiceAccount 사용
       containers:
         - name: web
-          image: stock-web:local # Phase 4에서 GHCR로 푸시한 이미지로 변경 예정
+          image: ghcr.io/msp-architect-2026/stock-backtest:5ef903e # Phase 4에서 GHCR로 푸시한 이미지로 변경 예정
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -37,7 +37,7 @@ spec:
             - name: JOB_LAUNCHER_MODE
               value: "K8S" # k8s or LOCAL // LOCAL은 개발용, K8S는 실제 클러스터에서 실행할 때 사용
             - name: WORKER_IMAGE
-              value: "stock-web:local" # promote job이 GHCR sha7 이미지로 갱신
+              value: "ghcr.io/msp-architect-2026/stock-backtest:5ef903e" # promote job이 GHCR sha7 이미지로 갱신
           readinessProbe:  # 트래픽 받을 준비되었는지 체크
             httpGet:
               path: /health
