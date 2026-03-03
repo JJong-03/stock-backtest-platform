@@ -99,3 +99,97 @@ jobs:
           tags: ${{ steps.vars.outputs.image }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 3: promote
+  # Runs ONLY on push to main, after test + build-and-push both succeed.
+  # Creates a PR that updates image tags in K8s manifests to the new SHA7.
+  # Manual merge required — no auto-merge.
+  # Rule 10: updates to immutable sha7 tag only.
+  # ─────────────────────────────────────────────────────────────────────────────
+  promote:
+    name: Create GitOps promotion PR
+    needs: [test, build-and-push]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    concurrency:
+      group: promote
+      cancel-in-progress: false
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image reference
+        id: vars
+        run: |
+          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          SHA7=$(echo "${{ github.sha }}" | cut -c1-7)
+          IMAGE="ghcr.io/${OWNER_LC}/stock-backtest:${SHA7}"
+          echo "sha7=${SHA7}"   >> "$GITHUB_OUTPUT"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+      - name: Create promote branch and update manifests
+        env:
+          SHA7: ${{ steps.vars.outputs.sha7 }}
+          IMAGE: ${{ steps.vars.outputs.image }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # -B: create branch or reset if exists (idempotent re-run)
+          git checkout -B promote/${SHA7}
+
+          # Web deployment container image
+          sed -i "s|image: stock-web:local.*|image: ${IMAGE}|" k8s/web-deployment.yaml
+          sed -i "s|image: ghcr\.io/.*/stock-backtest:[a-f0-9]\{7\}.*|image: ${IMAGE}|" k8s/web-deployment.yaml
+
+          # Web deployment WORKER_IMAGE env value
+          sed -i '/name: WORKER_IMAGE/{n; s|value: ".*"|value: "'"${IMAGE}"'"|}' k8s/web-deployment.yaml
+
+          # Worker template container image
+          sed -i "s|image: stock-web:local.*|image: ${IMAGE}|" k8s/worker-job-template.yaml
+          sed -i "s|image: ghcr\.io/.*/stock-backtest:[a-f0-9]\{7\}.*|image: ${IMAGE}|" k8s/worker-job-template.yaml
+
+          git add k8s/web-deployment.yaml k8s/worker-job-template.yaml
+          git diff --cached --exit-code && echo "No changes to commit" && exit 0
+
+          git commit -m "chore(promote): update image to ${IMAGE}"
+          git push origin promote/${SHA7} --force
+
+      - name: Open promotion PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA7: ${{ steps.vars.outputs.sha7 }}
+          IMAGE: ${{ steps.vars.outputs.image }}
+        run: |
+          # Skip if PR already exists for this sha7
+          EXISTING=$(gh pr list --head "promote/${SHA7}" --base main \
+            --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "${EXISTING}" ]; then
+            echo "PR #${EXISTING} already exists for promote/${SHA7} — skipping"
+            exit 0
+          fi
+
+          PR_BODY="## GitOps Promotion
+          **Image:** \`${IMAGE}\`
+          **Source commit:** ${{ github.sha }}
+
+          ### Changes
+          - \`k8s/web-deployment.yaml\`: container image + WORKER_IMAGE updated
+          - \`k8s/worker-job-template.yaml\`: image updated
+
+          > Merge this PR to deploy via Argo CD."
+
+          gh pr create \
+            --title "chore(promote): deploy ${IMAGE}" \
+            --body "${PR_BODY}" \
+            --base main \
+            --head "promote/${SHA7}"

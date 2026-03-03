@@ -1,0 +1,45 @@
+# Argo CD Application — stock-backtest
+#
+# Bootstrap (최초 1회):
+#   kubectl apply -f k8s/argocd-app.yaml
+#
+# 이후 Argo CD가 k8s/ 디렉터리(main 브랜치)를 자동 감시하며,
+# 매니페스트 변경 시 auto-sync를 수행한다.
+#
+# 이 파일은 directory.exclude로 Argo CD sync 대상에서 제외된다.
+# (argocd namespace 대상이므로 stock-backtest namespace로 sync하면 오류 발생)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: stock-backtest
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/msp-architect-2026/kim-jongwon.git
+    targetRevision: main
+    path: k8s
+    directory:
+      recurse: false
+      # argocd-app.yaml: argocd namespace 대상 → stock-backtest sync에서 제외
+      # worker-job-template.yaml: 플레이스홀더(<run_id_short> 등)가 유효하지 않은
+      #   K8s 리소스명 → Argo CD sync 시 거부됨. K8sJobLauncher가 Python 코드로 동적 생성.
+      exclude: "{argocd-app.yaml,worker-job-template.yaml}"
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: stock-backtest
+
+  syncPolicy:
+    automated:
+      prune: true      # Git에서 삭제된 리소스 → 클러스터에서도 자동 삭제
+      selfHeal: true   # kubectl edit 등 수동 변경 → Git 상태로 자동 복원
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
