@@ -7,6 +7,11 @@ metadata:
     app: web
 spec:
   replicas: 1 # Pod 1개로 시작, 필요에 따라 조정 가능 (HPA 추가시 최소값)
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0  # 롤링 업데이트 중 항상 최소 1 Pod 유지 (/health 200 보장)
+      maxSurge: 1        # 기존 Pod 제거 전 새 Pod를 먼저 Ready 상태로 올림
   selector:
     matchLabels:
       app: web
@@ -31,6 +36,8 @@ spec:
           env:
             - name: JOB_LAUNCHER_MODE
               value: "K8S" # k8s or LOCAL // LOCAL은 개발용, K8S는 실제 클러스터에서 실행할 때 사용
+            - name: WORKER_IMAGE
+              value: "stock-web:local" # promote job이 GHCR sha7 이미지로 갱신
           readinessProbe:  # 트래픽 받을 준비되었는지 체크
             httpGet:
               path: /health
