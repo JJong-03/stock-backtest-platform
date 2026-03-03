@@ -147,16 +147,26 @@ jobs:
           # -B: create branch or reset if exists (idempotent re-run)
           git checkout -B promote/${SHA7}
 
+          # H2: Two-pass sed — ^ anchor + leading-space capture prevents over-matching.
+          # No .*$ suffix: avoids multi-byte locale issues with trailing Korean comments.
+          # Trailing comments remain in YAML (harmless); only the value is replaced.
+          # Two separate commands because | alternation in pattern would conflict
+          # with | used as sed delimiter.
+
           # Web deployment container image
-          sed -i "s|image: stock-web:local.*|image: ${IMAGE}|" k8s/web-deployment.yaml
-          sed -i "s|image: ghcr\.io/.*/stock-backtest:[a-f0-9]\{7\}.*|image: ${IMAGE}|" k8s/web-deployment.yaml
+          sed -i -E "s|^([[:space:]]*)image: stock-web:local|\1image: ${IMAGE}|" k8s/web-deployment.yaml
+          sed -i -E "s|^([[:space:]]*)image: ghcr\.io/[^:]+/stock-backtest:[a-f0-9]{7}|\1image: ${IMAGE}|" k8s/web-deployment.yaml
 
           # Web deployment WORKER_IMAGE env value
+          # Advances to the value line after the name anchor; ".*" matches to last quote.
           sed -i '/name: WORKER_IMAGE/{n; s|value: ".*"|value: "'"${IMAGE}"'"|}' k8s/web-deployment.yaml
 
           # Worker template container image
-          sed -i "s|image: stock-web:local.*|image: ${IMAGE}|" k8s/worker-job-template.yaml
-          sed -i "s|image: ghcr\.io/.*/stock-backtest:[a-f0-9]\{7\}.*|image: ${IMAGE}|" k8s/worker-job-template.yaml
+          # Note: worker-job-template.yaml is excluded from Argo CD sync (directory.exclude).
+          # This update is for documentation/consistency only —
+          # K8sJobLauncher reads WORKER_IMAGE from the web Pod env, not this template.
+          sed -i -E "s|^([[:space:]]*)image: stock-web:local|\1image: ${IMAGE}|" k8s/worker-job-template.yaml
+          sed -i -E "s|^([[:space:]]*)image: ghcr\.io/[^:]+/stock-backtest:[a-f0-9]{7}|\1image: ${IMAGE}|" k8s/worker-job-template.yaml
 
           git add k8s/web-deployment.yaml k8s/worker-job-template.yaml
           git diff --cached --exit-code && echo "No changes to commit" && exit 0
@@ -178,18 +188,23 @@ jobs:
             exit 0
           fi
 
-          PR_BODY="## GitOps Promotion
-          **Image:** \`${IMAGE}\`
-          **Source commit:** ${{ github.sha }}
-
-          ### Changes
-          - \`k8s/web-deployment.yaml\`: container image + WORKER_IMAGE updated
-          - \`k8s/worker-job-template.yaml\`: image updated
-
-          > Merge this PR to deploy via Argo CD."
+          # H1: printf keeps every line at block indentation — heredoc body at col-0
+          # would escape the YAML block scalar and cause parse errors.
+          printf '%s\n' \
+            '## GitOps Promotion' \
+            '' \
+            "**Image:** \`${IMAGE}\`" \
+            "**Source commit:** ${{ github.sha }}" \
+            '' \
+            '### Changes' \
+            "- \`k8s/web-deployment.yaml\`: container image + WORKER_IMAGE updated" \
+            "- \`k8s/worker-job-template.yaml\`: image updated (consistency; excluded from Argo sync)" \
+            '' \
+            '> Merge this PR to deploy via Argo CD.' \
+            > /tmp/pr-body.md
 
           gh pr create \
             --title "chore(promote): deploy ${IMAGE}" \
-            --body "${PR_BODY}" \
+            --body-file /tmp/pr-body.md \
             --base main \
             --head "promote/${SHA7}"
