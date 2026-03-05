@@ -1266,6 +1266,14 @@ function valueClass(v) {
 
 // ── UPDATE STATS TAB ──
 function updateStatsTab(metrics) {
+    if (!metrics) {
+        // No metrics available yet — show placeholders
+        ["stat-return","stat-sharpe","stat-mdd","stat-trades","stat-final","stat-winrate","stat-sortino","stat-pf"].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = "—"; el.className = "stat-value neutral"; }
+        });
+        return;
+    }
     // Primary KPIs
     const retEl = document.getElementById("stat-return");
     retEl.textContent = fmt(metrics.total_return_pct, 2) + "%";
@@ -1446,30 +1454,24 @@ async function runBacktest() {
         const json = await res.json();
         lastResult = json;
 
-        if (json.status === "failed" || json.status === "error") {
+        if (json.status === "failed" || json.status === "error" || json.status === "FAILED") {
             showAlert(json.error_message || json.message || "Backtest failed", "error");
             document.getElementById("empty-state").style.display = "flex";
             document.getElementById("tab-container").classList.remove("visible");
-        } else {
+        } else if (json.status === "SUCCEEDED" && json.metrics) {
+            // Result already available — render immediately
+            renderResult(json);
+        } else if (json.run_id && (json.status === "PENDING" || json.status === "RUNNING" || !json.metrics)) {
+            // Async job submitted — poll /status/<run_id> until complete
             document.getElementById("run-id").textContent = json.run_id.substring(0, 8);
             document.getElementById("empty-state").style.display = "none";
             document.getElementById("tab-container").classList.add("visible");
-
-            // Update all tabs
-            updateStatsTab(json.metrics);
-            updateEquityTab(json.chart_base64 || json.chart_image);
-
-            // Pass chart images from charts object (Day 3.9+)
-            const charts = json.charts || {};
-            updateDrawdownTab(json.drawdown_curve, charts.drawdown_curve_base64);
-            updatePortfolioTab(charts.portfolio_orders_base64, charts.trade_pnl_base64, charts.cumulative_return_base64);
-            updateTradesTab(json.trades);
-
-            // Reset to stats tab
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            document.querySelector('.tab-btn[data-tab="stats"]').classList.add('active');
-            document.getElementById('tab-stats').classList.add('active');
+            updateStatsTab(null); // show placeholders while waiting
+            showAlert("Backtest submitted — waiting for results…", "warning");
+            pollForResult(json.run_id);
+        } else {
+            // Legacy sync path fallback
+            renderResult(json);
         }
     } catch (err) {
         showAlert("NETWORK ERROR: " + err.message, "error");
@@ -1481,13 +1483,74 @@ async function runBacktest() {
     }
 }
 
+// ═══ RENDER RESULT HELPER ═══
+function renderResult(json) {
+    lastResult = json;
+    document.getElementById("run-id").textContent = (json.run_id || "").substring(0, 8);
+    document.getElementById("empty-state").style.display = "none";
+    document.getElementById("tab-container").classList.add("visible");
+
+    updateStatsTab(json.metrics);
+    updateEquityTab(json.chart_base64 || json.chart_image);
+
+    const charts = json.charts || {};
+    updateDrawdownTab(json.drawdown_curve, charts.drawdown_curve_base64);
+    updatePortfolioTab(charts.portfolio_orders_base64, charts.trade_pnl_base64, charts.cumulative_return_base64);
+    updateTradesTab(json.trades);
+
+    // Reset to stats tab
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('.tab-btn[data-tab="stats"]').classList.add('active');
+    document.getElementById('tab-stats').classList.add('active');
+}
+
+// ═══ POLL FOR ASYNC RESULT ═══
+function pollForResult(runId) {
+    const POLL_INTERVAL = 2000; // 2 seconds
+    const MAX_POLLS = 150;      // 5 minutes max
+    let polls = 0;
+
+    const timer = setInterval(async () => {
+        polls++;
+        if (polls > MAX_POLLS) {
+            clearInterval(timer);
+            showAlert("Backtest timed out after 5 minutes.", "error");
+            return;
+        }
+        try {
+            const res = await fetch("/status/" + runId);
+            const data = await res.json();
+
+            if (data.status === "SUCCEEDED") {
+                clearInterval(timer);
+                renderResult(data);
+                showAlert("Backtest completed successfully!", "success");
+            } else if (data.status === "FAILED") {
+                clearInterval(timer);
+                showAlert(data.error_message || "Backtest failed", "error");
+            }
+            // PENDING/RUNNING — keep polling
+        } catch (err) {
+            clearInterval(timer);
+            showAlert("Polling error: " + err.message, "error");
+        }
+    }, POLL_INTERVAL);
+}
+
 // ═══ STRATEGY PRESET FUNCTIONS ═══
 let presetCache = [];
 
 async function loadPresets() {
     try {
         const res = await fetch("/api/strategies");
+        if (!res.ok || !(res.headers.get("content-type") || "").includes("application/json")) {
+            console.warn("Presets endpoint returned non-JSON or error; skipping preset load");
+            presetCache = [];
+            return;
+        }
         presetCache = await res.json();
+        if (!Array.isArray(presetCache)) { presetCache = []; }
         const sel = document.getElementById("preset-select");
         sel.innerHTML = '<option value="">-- NO PRESET --</option>';
         presetCache.forEach(s => {
@@ -1497,7 +1560,8 @@ async function loadPresets() {
             sel.appendChild(opt);
         });
     } catch (err) {
-        console.error("Failed to load presets:", err);
+        console.warn("Failed to load presets (non-blocking):", err);
+        presetCache = [];
     }
 }
 

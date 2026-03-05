@@ -107,7 +107,7 @@ Worker는 아래 환경변수로만 입력을 받는다 (파일 I/O 금지):
 | POST | /api/strategies | ✅ Implemented |
 | DELETE | /api/strategies/<id> | ✅ Implemented |
 | GET | /health | ✅ Implemented |
-| GET | /status/<run_id> | 📋 Phase 3 |
+| GET | /status/<run_id> | ✅ Implemented  |
 ---
 
 ## 3. Tech Stack
