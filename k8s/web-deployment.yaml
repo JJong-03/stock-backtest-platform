@@ -24,7 +24,7 @@ spec:
       containers:
         - name: web
           # image: ghcr.io/msp-architect-2026/stock-backtest:78fbd6c # Phase 4에서 GHCR로 푸시한 이미지로 변경 예정
-          image: ghcr.io/msp-architect-2026/stock-backtest:aad1948 # 이전 버전으로 변경
+          image: ghcr.io/msp-architect-2026/stock-backtest:1217fe1 # 이전 버전으로 변경
 
           imagePullPolicy: IfNotPresent
           ports:
@@ -39,7 +39,7 @@ spec:
             - name: JOB_LAUNCHER_MODE
               value: "K8S" # k8s or LOCAL // LOCAL은 개발용, K8S는 실제 클러스터에서 실행할 때 사용
             - name: WORKER_IMAGE
-              # value: "ghcr.io/msp-architect-2026/stock-backtest:aad1948" # promote job이 GHCR sha7 이미지로 갱신
+              # value: "ghcr.io/msp-architect-2026/stock-backtest:1217fe1" # promote job이 GHCR sha7 이미지로 갱신
               value: "ghcr.io/msp-architect-2026/stock-backtest:135b55b" # 이전 버전으로 변경
 
           readinessProbe:  # 트래픽 받을 준비되었는지 체크
