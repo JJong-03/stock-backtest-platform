@@ -274,14 +274,28 @@ def _mark_pending_run_failed(run_id: str, error_message: str) -> None:
 
 
 def _fetch_status_row(run_id: str):
-    stmt = text(
-        """
-        SELECT run_id, status, started_at, completed_at, error_message
-          FROM backtest_results
-         WHERE run_id = :run_id
-        """
-    )
-    return db.session.execute(stmt, {"run_id": run_id}).mappings().first()
+    params = {"run_id": run_id}
+    try:
+        stmt = text(
+            """
+            SELECT run_id, status, started_at, completed_at, error_message,
+                   metrics_json, equity_curve_json, trades_json, chart_base64
+              FROM backtest_results
+             WHERE run_id = :run_id
+            """
+        )
+        return db.session.execute(stmt, params).mappings().first()
+    except Exception:
+        db.session.rollback()
+        stmt = text(
+            """
+            SELECT run_id, status, started_at, completed_at, error_message,
+                   metrics_json, equity_curve_json, trades_json
+              FROM backtest_results
+             WHERE run_id = :run_id
+            """
+        )
+        return db.session.execute(stmt, params).mappings().first()
 
 
 def _delete_succeeded_job_if_needed(run_id: str, status: str) -> None:
@@ -397,14 +411,44 @@ def get_status(run_id):
         "completed_at": _to_iso8601_utc(row["completed_at"]),
         "error_message": row["error_message"],
     }
+
+    # Include result data when available (SUCCEEDED)
+    if status == "SUCCEEDED":
+        metrics_raw = row["metrics_json"]
+        if metrics_raw:
+            response["metrics"] = (
+                json.loads(metrics_raw) if isinstance(metrics_raw, str) else metrics_raw
+            )
+
+        equity_raw = row["equity_curve_json"]
+        if equity_raw:
+            response["equity_curve"] = (
+                json.loads(equity_raw) if isinstance(equity_raw, str) else equity_raw
+            )
+
+        trades_raw = row["trades_json"]
+        if trades_raw:
+            response["trades"] = (
+                json.loads(trades_raw) if isinstance(trades_raw, str) else trades_raw
+            )
+
+        chart_b64 = row.get("chart_base64")
+        if chart_b64:
+            response["chart_base64"] = chart_b64
+
     _run_log(run_id, f"Status response: {status}")
     return jsonify(response), 200
 
 
 @app.route("/api/strategies", methods=["GET"])
 def get_strategies():
-    strategies = Strategy.query.order_by(Strategy.created_at.desc()).all()
-    return jsonify([s.to_dict() for s in strategies]), 200
+    try:
+        strategies = Strategy.query.order_by(Strategy.created_at.desc()).all()
+        return jsonify([s.to_dict() for s in strategies]), 200
+    except Exception as exc:
+        db.session.rollback()
+        logger.warning(f"strategies table may be missing; returning empty presets: {exc}")
+        return jsonify([]), 200
 
 
 @app.route("/api/strategies", methods=["POST"])
