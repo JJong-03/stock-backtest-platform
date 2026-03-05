@@ -274,15 +274,28 @@ def _mark_pending_run_failed(run_id: str, error_message: str) -> None:
 
 
 def _fetch_status_row(run_id: str):
-    stmt = text(
-        """
-        SELECT run_id, status, started_at, completed_at, error_message,
-               metrics_json, equity_curve_json, trades_json, chart_base64
-          FROM backtest_results
-         WHERE run_id = :run_id
-        """
-    )
-    return db.session.execute(stmt, {"run_id": run_id}).mappings().first()
+    params = {"run_id": run_id}
+    try:
+        stmt = text(
+            """
+            SELECT run_id, status, started_at, completed_at, error_message,
+                   metrics_json, equity_curve_json, trades_json, chart_base64
+              FROM backtest_results
+             WHERE run_id = :run_id
+            """
+        )
+        return db.session.execute(stmt, params).mappings().first()
+    except Exception:
+        db.session.rollback()
+        stmt = text(
+            """
+            SELECT run_id, status, started_at, completed_at, error_message,
+                   metrics_json, equity_curve_json, trades_json
+              FROM backtest_results
+             WHERE run_id = :run_id
+            """
+        )
+        return db.session.execute(stmt, params).mappings().first()
 
 
 def _delete_succeeded_job_if_needed(run_id: str, status: str) -> None:
@@ -419,7 +432,7 @@ def get_status(run_id):
                 json.loads(trades_raw) if isinstance(trades_raw, str) else trades_raw
             )
 
-        chart_b64 = row["chart_base64"]
+        chart_b64 = row.get("chart_base64")
         if chart_b64:
             response["chart_base64"] = chart_b64
 
