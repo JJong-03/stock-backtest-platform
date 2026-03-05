@@ -63,6 +63,16 @@ class RSIRule(BaseRule):
         oversold: float = 30.0,
         overbought: float = 70.0
     ):
+        period = int(period)
+        oversold = float(oversold)
+        overbought = float(overbought)
+
+        if not (0 <= oversold < overbought <= 100):
+            raise ValueError(
+                f"Invalid RSI thresholds: oversold={oversold}, overbought={overbought}. "
+                f"Required: 0 <= oversold < overbought <= 100"
+            )
+
         params = {
             'period': period,
             'oversold': oversold,
@@ -341,6 +351,19 @@ class RsiMacdRule(BaseRule):
         macd_slow: int = 26,
         macd_signal: int = 9
     ):
+        rsi_period = int(rsi_period)
+        rsi_oversold = float(rsi_oversold)
+        rsi_overbought = float(rsi_overbought)
+        macd_fast = int(macd_fast)
+        macd_slow = int(macd_slow)
+        macd_signal = int(macd_signal)
+
+        if not (0 <= rsi_oversold < rsi_overbought <= 100):
+            raise ValueError(
+                f"Invalid RSI thresholds: rsi_oversold={rsi_oversold}, rsi_overbought={rsi_overbought}. "
+                f"Required: 0 <= rsi_oversold < rsi_overbought <= 100"
+            )
+
         params = {
             'rsi_period': rsi_period,
             'rsi_oversold': rsi_oversold,
