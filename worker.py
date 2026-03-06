@@ -375,7 +375,11 @@ def _add_rule_features(df: pd.DataFrame, canonical_rule_type: str, params: Dict[
     return result
 
 
-def _build_metrics_json(backtest_result: Dict[str, Any], drawdown_curve: Any) -> Dict[str, Any]:
+def _build_metrics_json(
+    backtest_result: Dict[str, Any],
+    drawdown_curve: Any,
+    num_normalized_trades: int = 0,
+) -> Dict[str, Any]:
     metrics_report = PerformanceMetrics.generate_full_report(backtest_result)
     risk = metrics_report.get("risk_metrics", {})
     trading = metrics_report.get("trading_metrics", {})
@@ -387,8 +391,9 @@ def _build_metrics_json(backtest_result: Dict[str, Any], drawdown_curve: Any) ->
     return {
         "total_return_pct": round(_safe_float(backtest_result.get("total_return_pct")), 4),
         "sharpe_ratio": round(_safe_float(risk.get("sharpe_ratio")), 6),
+        "sortino_ratio": round(_safe_float(risk.get("sortino_ratio")), 6),
         "max_drawdown_pct": round(max_drawdown_pct if drawdown_curve else _safe_float(risk.get("max_drawdown_pct")), 4),
-        "num_trades": _safe_int(backtest_result.get("num_trades"), 0),
+        "num_trades": num_normalized_trades,
         "win_rate": round(_safe_float(trading.get("win_rate", backtest_result.get("win_rate"))), 4),
         "profit_factor": round(_safe_float(trading.get("profit_factor")), 6),
         "final_value": round(_safe_float(backtest_result.get("final_value")), 4),
@@ -515,7 +520,7 @@ def _run_backtest(run_id: str, inputs: Dict[str, Any]) -> Dict[str, Any]:
     equity_curve = build_equity_curve(result["portfolio_history"])
     trades = normalize_trades(result.get("trades", []), fee_rate=inputs["fee_rate"])
     drawdown_curve = derive_drawdown_curve(equity_curve)
-    metrics_json = _build_metrics_json(result, drawdown_curve)
+    metrics_json = _build_metrics_json(result, drawdown_curve, num_normalized_trades=len(trades))
 
     logger.info(
         "Adapter derived payloads: equity_points=%d trades=%d drawdown_points=%d",
