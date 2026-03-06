@@ -25,8 +25,8 @@ spec:
       # argocd-app.yaml: argocd namespace 대상 -> stock-backtest sync에서 제외
       # worker-job-template.yaml: 플레이스홀더(<run_id_short> 등)가 유효하지 않은
       #   K8s 리소스명 -> Argo CD sync 시 거부됨. K8sJobLauncher가 Python 코드로 동적 생성.
-      exclude: "{argocd-app.yaml,worker-job-template.yaml}"
-
+      exclude: "{argocd-app.yaml,worker-job-template.yaml,secret-template.yaml,secret.yaml}"
+      
   destination:
     server: https://kubernetes.default.svc
     namespace: stock-backtest
