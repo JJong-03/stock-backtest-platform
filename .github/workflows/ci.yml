@@ -59,8 +59,13 @@ jobs:
     name: Docker build & push (GHCR)
     needs: test
     runs-on: ubuntu-latest
-    # Only run on direct pushes to main — skip PRs and feature branches.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Only run on direct pushes to main — skip PRs, feature branches, and
+    # promote-merge commits (prevents CI rebuild loop after promote PR merge).
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor != 'github-actions[bot]' &&
+      !contains(github.event.head_commit.message, 'chore(promote)')
 
     permissions:
       contents: read
@@ -111,7 +116,11 @@ jobs:
     name: Create GitOps promotion PR
     needs: [test, build-and-push]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor != 'github-actions[bot]' &&
+      !contains(github.event.head_commit.message, 'chore(promote)')
 
     concurrency:
       group: promote
