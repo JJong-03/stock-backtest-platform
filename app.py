@@ -9,11 +9,20 @@ import uuid
 from datetime import datetime, timezone
 from urllib.parse import quote_plus
 
+import pandas as pd
 from flask import Flask, jsonify, render_template, request
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 
+from adapters.adapter import (
+    derive_drawdown_curve,
+    render_cumulative_return_chart,
+    render_drawdown_chart,
+    render_equity_chart,
+    render_orders_chart,
+    render_trade_pnl_chart,
+)
 from extensions import db
 from job_launcher import create_job_launcher
 from models import Strategy
@@ -278,7 +287,7 @@ def _fetch_status_row(run_id: str):
     try:
         stmt = text(
             """
-            SELECT run_id, status, started_at, completed_at, error_message,
+            SELECT run_id, ticker, status, started_at, completed_at, error_message,
                    metrics_json, equity_curve_json, trades_json, chart_base64
               FROM backtest_results
              WHERE run_id = :run_id
@@ -289,7 +298,7 @@ def _fetch_status_row(run_id: str):
         db.session.rollback()
         stmt = text(
             """
-            SELECT run_id, status, started_at, completed_at, error_message,
+            SELECT run_id, ticker, status, started_at, completed_at, error_message,
                    metrics_json, equity_curve_json, trades_json
               FROM backtest_results
              WHERE run_id = :run_id
@@ -387,6 +396,39 @@ def run_backtest():
     )
 
 
+def _load_price_df(ticker: str) -> pd.DataFrame | None:
+    """Load price DataFrame for chart rendering. Returns None on failure."""
+    if not ticker:
+        return None
+    csv_path = os.path.join(DATA_DIR, ticker)
+    if not os.path.isfile(csv_path):
+        return None
+    try:
+        df = pd.read_csv(csv_path, index_col=0, parse_dates=True)
+        df.columns = [c.capitalize() for c in df.columns]
+        return df.sort_index()
+    except Exception as exc:
+        logger.warning(f"Failed to load price data for {ticker}: {exc}")
+        return None
+
+
+def _derive_charts(equity_curve, trades, ticker: str | None) -> dict:
+    """Derive all charts from canonical data. Returns dict with chart keys."""
+    charts = {}
+
+    drawdown_curve = derive_drawdown_curve(equity_curve) if equity_curve else []
+    charts["_drawdown_curve"] = drawdown_curve
+    charts["_equity_chart_base64"] = render_equity_chart(equity_curve)
+    charts["drawdown_curve_base64"] = render_drawdown_chart(drawdown_curve)
+    charts["cumulative_return_base64"] = render_cumulative_return_chart(equity_curve)
+
+    price_df = _load_price_df(ticker) if ticker else None
+    charts["portfolio_orders_base64"] = render_orders_chart(price_df, trades) if price_df is not None else None
+    charts["trade_pnl_base64"] = render_trade_pnl_chart(price_df, trades) if price_df is not None else None
+
+    return charts
+
+
 @app.route("/status/<run_id>", methods=["GET"])
 def get_status(run_id):
     _run_log(run_id, "Status request received")
@@ -421,20 +463,27 @@ def get_status(run_id):
             )
 
         equity_raw = row["equity_curve_json"]
+        equity_curve = None
         if equity_raw:
-            response["equity_curve"] = (
-                json.loads(equity_raw) if isinstance(equity_raw, str) else equity_raw
-            )
+            equity_curve = json.loads(equity_raw) if isinstance(equity_raw, str) else equity_raw
+            response["equity_curve"] = equity_curve
 
         trades_raw = row["trades_json"]
+        trades = None
         if trades_raw:
-            response["trades"] = (
-                json.loads(trades_raw) if isinstance(trades_raw, str) else trades_raw
-            )
+            trades = json.loads(trades_raw) if isinstance(trades_raw, str) else trades_raw
+            response["trades"] = trades
 
+        # Derive charts from canonical data (Rule 1: adapter pattern)
+        ticker = row.get("ticker")
+        derived = _derive_charts(equity_curve, trades, ticker)
+        response["drawdown_curve"] = derived.pop("_drawdown_curve", [])
+        equity_chart = derived.pop("_equity_chart_base64", None)
+        response["charts"] = {k: v for k, v in derived.items() if v is not None}
+
+        # Equity chart: prefer DB-stored legacy field, fall back to derived
         chart_b64 = row.get("chart_base64")
-        if chart_b64:
-            response["chart_base64"] = chart_b64
+        response["chart_base64"] = chart_b64 or equity_chart
 
     _run_log(run_id, f"Status response: {status}")
     return jsonify(response), 200
