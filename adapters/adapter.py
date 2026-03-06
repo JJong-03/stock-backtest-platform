@@ -341,6 +341,64 @@ def normalize_trades(
     return normalized
 
 
+def render_equity_chart(equity_curve: List[Dict[str, Any]]) -> Optional[str]:
+    """
+    Render equity curve as a line chart.
+
+    Args:
+        equity_curve: List of {"date": str, "equity": float}
+
+    Returns:
+        Base64 encoded PNG string with data URI prefix, or None on failure.
+    """
+    if not equity_curve:
+        logger.warning("render_equity_chart received empty equity_curve")
+        return None
+
+    fig = None
+    try:
+        dates = [point["date"] for point in equity_curve]
+        equities = [point["equity"] for point in equity_curve]
+
+        fig, ax = plt.subplots(figsize=(12, 4))
+        ax.plot(range(len(dates)), equities, color='#4dabf7', linewidth=1.5)
+
+        ax.set_facecolor('#0a0a0a')
+        fig.patch.set_facecolor('#0a0a0a')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_color('#333333')
+        ax.spines['left'].set_color('#333333')
+        ax.tick_params(colors='#888888', labelsize=9)
+        ax.set_ylabel('Portfolio Value ($)', color='#888888', fontsize=10)
+        ax.set_title('Equity Curve', color='#ff9900', fontsize=12,
+                     fontfamily='monospace', loc='left', pad=10)
+        ax.grid(True, alpha=0.15, color='#1e1e1e', linewidth=0.5)
+
+        n_labels = min(10, len(dates))
+        step = max(1, len(dates) // n_labels)
+        ax.set_xticks(range(0, len(dates), step))
+        ax.set_xticklabels(
+            [dates[i] for i in range(0, len(dates), step)],
+            rotation=45, ha='right', fontsize=8
+        )
+
+        plt.tight_layout()
+        buf = io.BytesIO()
+        fig.savefig(buf, format='png', dpi=100, facecolor=fig.get_facecolor())
+        buf.seek(0)
+
+        b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+        return f"data:image/png;base64,{b64}"
+
+    except Exception as e:
+        logger.warning(f"render_equity_chart failed: {e}")
+        return None
+    finally:
+        if fig:
+            plt.close(fig)
+
+
 def render_drawdown_chart(drawdown_curve: List[Dict[str, Any]]) -> Optional[str]:
     """
     Render drawdown curve as a LINE chart (not filled area).
