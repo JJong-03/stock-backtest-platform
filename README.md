@@ -92,9 +92,3 @@ python -m pytest tests/ -v
 | **Reference** | [API & Schemas](https://github.com/msp-architect-2026/kim-jongwon/wiki/API-Endpoints-%26-Schemas) · [ERD](https://github.com/msp-architect-2026/kim-jongwon/wiki/ERD-Data-Model) · [Security Model](https://github.com/msp-architect-2026/kim-jongwon/wiki/Security-Model) · [Testing Strategy](https://github.com/msp-architect-2026/kim-jongwon/wiki/Testing-Strategy) · [UI 화면구성](https://github.com/msp-architect-2026/kim-jongwon/wiki/UI-%ED%99%94%EB%A9%B4%EA%B5%AC%EC%84%B1) · [Glossary](https://github.com/msp-architect-2026/kim-jongwon/wiki/Glossary) |
 
 
-
-## CI/CD Verification
-This commit is used to verify the CI/CD pipeline.
-
-## CI/CD Verification
-This commit is used to verify the CI/CD pipeline.
