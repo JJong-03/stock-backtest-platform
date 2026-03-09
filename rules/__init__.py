@@ -19,6 +19,7 @@ from .paper_rules import (
     MeanReversionRule,
     BreakoutRule
 )
+from .registry import UnknownRuleTypeError, canonical_rule_type, instantiate_rule
 from .rule_validator import RuleValidator, SignalAnalyzer
 from .optimizer import ParameterOptimizer
 
@@ -44,6 +45,11 @@ __all__ = [
     'ValueRule',
     'MeanReversionRule',
     'BreakoutRule',
+
+    # Registry
+    'UnknownRuleTypeError',
+    'canonical_rule_type',
+    'instantiate_rule',
 
     # Validation
     'RuleValidator',

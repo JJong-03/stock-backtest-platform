@@ -2,14 +2,25 @@
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+*.so
 *.egg-info/
 dist/
 build/
+pip-wheel-metadata/
 
 # Virtual environments
 venv/
 .venv/
 *.egg
+
+# pytest
+.pytest_cache/
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
 
 # Environment variables
 .env
@@ -22,6 +33,8 @@ instance/
 # SQLite databases (must NEVER be committed)
 *.db
 strategies.db
+
+# Kubernetes secrets
 k8s/secret.yaml
 
 # OS files
@@ -44,4 +57,7 @@ data/*.csv
 # Logs
 logs/
 *.log
+*.out
+
+# Codex / omx
 .omx/
