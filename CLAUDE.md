@@ -82,6 +82,8 @@ Worker는 아래 환경변수로만 입력을 받는다 (파일 I/O 금지):
 - Web: 입력 검증, `run_id` 발급, `PENDING` insert, Job 생성, `/status/<run_id>` 제공, 성공 시 Job 삭제
 - Worker: `RUNNING` 전이, 엔진 실행, adapter 파생, DB persist, `SUCCEEDED/FAILED` 전이, `error_message` 기록
 
+**Reference note:** 상태 머신, 오류 분류, UTC 타임스탬프의 정식 계약은 아래 **Runtime & Data Contracts** 섹션을 기준으로 한다. 본 섹션은 Phase 3 구현 맥락 요약이다.
+
 **Current Phase:** Phase-based planning (as of 2026-02-07).  
 — Phases 1–3 cover core platform; Phases 4–6 cover automation, observability, and polish.
 
@@ -226,6 +228,11 @@ PENDING ──→ RUNNING ──→ SUCCEEDED
 - `started_at`: Worker transitions to `RUNNING`.
 - `completed_at`: Worker transitions to `SUCCEEDED` or `FAILED`.
 
+**Note:**
+`start_date` and `end_date` are DATE values (YYYY-MM-DD) representing backtest boundaries.
+They are not timestamps and therefore do not follow the ISO8601 DATETIME rule used for
+`created_at`, `started_at`, and `completed_at`.
+
 **Failure Classification:**
 
 | Category | Cause | HTTP (if surfaced) | Example |
@@ -272,6 +279,8 @@ Given identical values for all four identifiers below, the engine MUST produce i
 - References to `image_tag` as an identity guarantee assume immutable tagging policy.
   This assumption is governed by Rule 10 (Immutable Image Tags) and is not newly introduced here.
 
+**Storage mapping:** `engine_version` is not stored as a separate column. It is represented by the `image_tag` column in the persistence schema. The reproducibility requirement is satisfied because `image_tag` serves as the stored engine version identifier.
+
 ---
 
 ### Result Persistence Boundaries
@@ -281,29 +290,39 @@ This subsection defines what MUST be persisted vs. what MAY be derived on demand
 
 **MUST persist (canonical data):**
 
+The table below is the canonical persistence schema for backtest results. All other sections referencing stored fields must align with this definition.
+
+**DB ↔ API naming convention:** Database columns use a `_json` suffix for JSON-typed columns (for example, `params_json`, `metrics_json`, `equity_curve_json`, `trades_json`). The API serialization layer strips this suffix when returning payload fields (for example, `params`, `metrics`, `equity_curve`, `trades`).
+
 | Column | Type | Description |
 |---|---|---|
-| `run_id` | CHAR(36) | Primary key, UUID4 |
-| `ticker` | VARCHAR(10) | Stock symbol |
-| `rule_type` | VARCHAR(50) | Execution logic identifier |
-| `rule_id` | VARCHAR(100) | Optional helper slug (nullable) |
-| `params_json` | JSON | Strategy parameters (frozen snapshot) |
-| `status` | ENUM | `PENDING`, `RUNNING`, `SUCCEEDED`, `FAILED` |
-| `error_message` | TEXT | NULL for success, populated for failure |
-| `metrics_json` | JSON | Summary KPIs (Rule 2 `metrics` object) |
-| `equity_curve_json` | JSON | Full equity time-series (canonical) |
-| `trades_json` | JSON | Full trade list (canonical) |
-| `created_at` | DATETIME | UTC, set by Web |
-| `started_at` | DATETIME | UTC, set by Worker (nullable) |
-| `completed_at` | DATETIME | UTC, set by Worker (nullable) |
+| run_id | CHAR(36) | Primary key, UUID4 |
+| ticker | VARCHAR(10) | Stock symbol |
+| rule_type | VARCHAR(50) | Execution logic identifier |
+| rule_id | VARCHAR(100) | Optional helper slug (nullable) |
+| params_json | JSON | Strategy parameters (frozen snapshot) |
+| status | ENUM | PENDING, RUNNING, SUCCEEDED, FAILED |
+| error_message | TEXT | NULL for success, populated for failure |
+| metrics_json | JSON | Summary KPIs |
+| equity_curve_json | JSON | Canonical equity time-series |
+| trades_json | JSON | Canonical trade list |
+| data_hash | VARCHAR(64) | SHA-256 of input CSV (reproducibility) |
+| image_tag | VARCHAR(128) | Docker image tag identifying engine version |
+| start_date | DATE | Backtest start date |
+| end_date | DATE | Backtest end date |
+| created_at | DATETIME | UTC timestamp set by Web |
+| started_at | DATETIME | UTC timestamp set by Worker |
+| completed_at | DATETIME | UTC timestamp set by Worker |
 
 **SHOULD persist (performance optimization):**
-- `chart_base64`: Primary equity curve chart (legacy field, retained for backward compatibility).
+- `chart_base64`: Primary equity curve chart. Retained for backward compatibility with Phase 1 clients; new chart fields follow the derive-on-demand pattern and are not stored.
 
 **MUST NOT persist (derived on demand):**
 - `drawdown_curve`: Derivable from `equity_curve_json` via Adapter.
 - `portfolio_orders_base64`, `trade_pnl_base64`, `cumulative_return_base64`: Re-renderable from `equity_curve_json` + `trades_json` + price data.
 - `portfolio_curve`: Derivable from `equity_curve_json` + `trades_json`.
+- `price_candles`: Phase 2 field. Re-derivable from raw OHLCV data.
+- `signals`: Phase 2 field. Re-derivable from rule execution outputs.
 
 **Rationale:** Storing only canonical data (equity_curve, trades) and summary metrics keeps the DB lean.
 All derived visualizations and curves can be deterministically re-computed, consistent with the Adapter pattern (Rule 1).
@@ -631,49 +650,47 @@ re-computation using different formulas is not.
 Web(Controller)과 Worker(Job) 간 JSON Schema는 **한번 정의되면 동결**.
 기존 필드 삭제/이름 변경 금지. 새 필드 추가 시 기본값 필수.
 ```json
-// Backtest Request (Web -> Worker) - Day 3.9+ Extended
 {
-  // Core fields
   "run_id": "uuid",
   "ticker": "AAPL.csv",
-  "rule_type": "RSI",             // Required: drives execution logic
+  "rule_type": "RSI",
   "params": {"period": 14, "oversold": 30, "overbought": 70},
-  "rule_id": "RSI_14_30_70",     // Optional: helper slug for tracking/logging
-  "start_date": "2020-01-01",  // YYYY-MM-DD
+  "rule_id": "RSI_14_30_70",
+  "start_date": "2020-01-01",
   "end_date": "2024-01-01",
-
-  // NEW: Trading parameters (Day 3.9)
-  "initial_capital": 100000,   // Default: 100000
-  "fee_rate": 0.001,           // Default: 0.001 (0.1%), decimal fraction
-  "slippage_bps": 0,           // Default: 0 (not implemented Day 3.9)
-  "position_size": 10000,      // Default: 10000
-  "size_type": "value",        // Default: "value" | "percent"
-  "direction": "longonly",     // Default: "longonly" | "longshort"
-  "timeframe": "1d" // Default: "1d" | "5m" | "1h" (Phase 2)
+  "initial_capital": 100000,
+  "fee_rate": 0.001,
+  "slippage_bps": 0,
+  "position_size": 10000,
+  "size_type": "value",
+  "direction": "longonly",
+  "timeframe": "1d"
 }
 ```
 
-**Backward Compatibility:**
-- All new fields have defaults
-- Existing fields unchanged
-- Additive only (no breaking changes)
+**Backtest Request notes:**
+- `rule_type` is required and drives execution logic.
+- `rule_id` is optional and used for tracking/logging.
+- All trading parameter fields are additive-only and have defaults. Existing fields are unchanged.
+- `timeframe` default is `"1d"`; `"5m"` and `"1h"` are Phase 2.
 
 ```json
-// Backtest Result (Worker -> Web/DB) - Day 3.9+ Extended
 {
   "run_id": "uuid",
-  "status": "completed|failed",
+  "status": "SUCCEEDED",
   "error_message": null,
-
-  // Metrics (core + enhanced)
+  "rule_type": "RSI",
+  "rule_id": "RSI_14_30_70",
+  "params": {
+    "period": 14,
+    "oversold": 30,
+    "overbought": 70
+  },
   "metrics": {
-    // Day 3.9 (required)
     "total_return_pct": 12.34,
     "sharpe_ratio": 1.45,
     "max_drawdown_pct": 8.21,
     "num_trades": 42,
-
-    // Phase 2 (optional)
     "cagr": 10.5,
     "volatility": 18.2,
     "win_rate": 65.5,
@@ -681,22 +698,15 @@ Web(Controller)과 Worker(Job) 간 JSON Schema는 **한번 정의되면 동결**
     "exposure_pct": 82.3,
     "profit_factor": 1.85
   },
-
-  // Time-series data (NEW, required for tabs)
   "equity_curve": [
-    { "date": "2020-01-01", "equity": 100000 }
+    {"date": "2020-01-01", "equity": 100000}
   ],
-
   "drawdown_curve": [
-    { "date": "2020-01-01", "drawdown_pct": 0.0 }
+    {"date": "2020-01-01", "drawdown_pct": 0.0}
   ],
-
-  // Optional / Derivable
   "portfolio_curve": [
-    { "date": "2020-01-01", "cash": 90000, "position": 10000, "total": 100000 }
+    {"date": "2020-01-01", "cash": 90000, "position": 10000, "total": 100000}
   ],
-
-  // Trade details (NEW schema)
   "trades": [
     {
       "trade_no": 0,
@@ -713,28 +723,31 @@ Web(Controller)과 Worker(Job) 간 JSON Schema는 **한번 정의되면 동결**
       "holding_period": 112.0
     }
   ],
-
-  // Server-rendered charts (Base64 PNG, Day 3.9+)
   "charts": {
     "drawdown_curve_base64": "data:image/png;base64,...",
     "portfolio_orders_base64": "data:image/png;base64,...",
     "trade_pnl_base64": "data:image/png;base64,...",
     "cumulative_return_base64": "data:image/png;base64,..."
   },
-
-  // Phase 2 (candlestick tab)
+  "data_hash": "sha256hex...",
+  "image_tag": "abc1234",
+  "start_date": "2020-01-01",
+  "end_date": "2024-01-01",
+  "chart_base64": "data:image/png;base64,...",
   "price_candles": [
-    { "date": "2020-01-01", "open": 150.0, "high": 153.5, "low": 149.2, "close": 152.8, "volume": 1234567 }
+    {"date": "2020-01-01", "open": 150.0, "high": 153.5, "low": 149.2, "close": 152.8, "volume": 1234567}
   ],
-
   "signals": [
-    { "date": "2020-01-15", "action": "BUY", "price": 153.17 }
-  ],
-
-  // Legacy (equity curve chart, still supported)
-  "chart_base64": "data:image/png;base64,..."
+    {"date": "2020-01-15", "action": "BUY", "price": 153.17}
+  ]
 }
 ```
+
+**Backtest Result notes:**
+- The canonical status values are: `PENDING`, `RUNNING`, `SUCCEEDED`, `FAILED`. Legacy clients may serialize `SUCCEEDED` as `"completed"`.
+- `rule_id` is an optional helper slug persisted for traceability and debugging.
+- `params` represents the frozen strategy parameters used during execution. It is returned for reproducibility and auditability.
+- `metrics` includes Day 3.9 required fields (`total_return_pct`, `sharpe_ratio`, `max_drawdown_pct`, `num_trades`) and Phase 2 optional fields (`cagr`, `volatility`, `win_rate`, `avg_trade_return`, `exposure_pct`, `profit_factor`).
 
 ### Rule 3 -- Execution Context (Root Only)
 
@@ -830,6 +843,15 @@ LOG_LEVEL=INFO
 - Real secrets are injected via **CI/CD pipeline variables** or **Sealed Secrets** in production.
 - `.gitignore` MUST include `k8s/secret.yaml` to prevent accidental commits.
 
+#### GitOps Secret Management (Argo CD)
+
+In addition to the Secret Commit Policy defined above, Argo CD deployments follow the constraints below.
+
+- Kubernetes Secrets MUST NOT be committed with real values.
+- The repository stores only `secret-template.yaml` with placeholder values.
+- The real `secret.yaml` is generated outside Git and ignored via `.gitignore`.
+- Argo CD synchronization excludes real secret manifests to prevent self-heal overwrite conflicts.
+
 ### Rule 8 -- Observability (Primary Reference)
 
 > **This is the single source of truth for observability requirements.**
@@ -845,6 +867,30 @@ run_id = str(uuid.uuid4())
 logger.info(f"[run_id={run_id}] Backtest started: ticker={ticker}, rule={rule_id}")
 logger.info(f"[run_id={run_id}] Backtest completed: return={result['total_return_pct']:.2f}%")
 ```
+
+#### Phase 5 Observability Goals (Prometheus & Grafana)
+
+The platform introduces metrics-based observability in addition to structured logging.
+
+Core monitoring goals:
+
+- HTTP request latency for Flask endpoints
+- API request count and error rate
+- Kubernetes Job backtest duration
+- Kubernetes Job success and failure rate
+- Worker execution failures
+
+If implemented, the Web service should expose a `/metrics` endpoint compatible with Prometheus.
+
+Grafana dashboards may visualize:
+
+- request latency distribution
+- job success rate
+- backtest runtime distribution
+
+These metrics extend the existing observability mechanism defined in Rule 8 (run_id structured logging).
+
+The `/metrics` endpoint exposes only in-memory counters and histograms and does not write any filesystem state. This remains compliant with the stateless Web architecture defined in Rule 4.
 
 ### Rule 9 -- Database Session Safety
 
@@ -879,10 +925,9 @@ stock_backtest/
 |
 |-- CLAUDE.md                          # 이 파일 (프로젝트 규칙 및 컨텍스트)
 |-- README.md                          # 프로젝트 소개 및 Quick Start
-|-- RETROSPECTIVE.md                   # 기술 회고 및 아키텍처 설명
 |-- requirements.txt                   # Python 의존성
+|-- requirements-dev.txt               # 개발 의존성 (gunicorn)
 |-- .gitignore                         # Git 제외 규칙
-|-- test_structure.py                  # 구조 검증 테스트
 |-- app.py                             # ✅ Flask 애플리케이션 진입점 (Controller)
 |-- worker.py                          # [Phase 3] K8s Job Worker 진입점
 |-- extensions.py                      # ✅ SQLAlchemy 인스턴스 (순환 import 방지)
@@ -895,6 +940,10 @@ stock_backtest/
 |-- .github/                           # [Phase 4] CI/CD
 |   +-- workflows/
 |       +-- ci.yml                     # Test → Build → Push (GitHub Actions)
+|
+|-- launchers/                         # [Phase 3] Job 오케스트레이션 패키지
+|   |-- __init__.py                    # Re-exports: create_job_launcher, build_job_name, JobLauncher
+|   +-- job_launcher.py               # JobLauncher 추상화 (Local/K8s 모드 전환)
 |
 |-- backtest/                          # 핵심 엔진 (IMMUTABLE)
 |   |-- __init__.py
@@ -943,9 +992,13 @@ stock_backtest/
 |   |-- rbac.yaml                      # ServiceAccount + Role + RoleBinding (namespace-scoped, jobs.batch only)
 |   +-- ingress.yaml
 |
-|-- docs/                              # [Phase 6] 프로젝트 문서
+|-- docs/                              # [Phase 6] 프로젝트 문서 + 기술 회고
+|   |-- RETROSPECTIVE.md              # 기술 회고 및 아키텍처 설명
+|   |-- AGENTS.md                     # Codex 에이전트 실행 플레이북
 |   |-- architecture.md                # 아키텍처 다이어그램 (Mermaid)
-|   +-- ops-guide.md                   # 운영 가이드 (배포, 롤백, 트러블슈팅)
+|   |-- ops-guide.md                   # 운영 가이드 (배포, 롤백, 트러블슈팅)
+|   +-- sql/
+|       +-- backtest_results.sql       # backtest_results 테이블 DDL 참조
 |
 |-- data/                              # OHLCV CSV 데이터 (AAPL.csv 데모 포함)
 ```
@@ -954,7 +1007,7 @@ stock_backtest/
 
 ## 7. Short-Term Roadmap
 
-**Note:** Roadmap is high-level only. Detailed task lists belong in `RETROSPECTIVE.md` or Issues.
+**Note:** Roadmap is high-level only. Detailed task lists belong in `docs/RETROSPECTIVE.md` or Issues.
 Phase-based plan with acceptance criteria is in **Section 8**.
 
 ### Day 3 -- Flask Web Dashboard (✅ Completed — Pre-Phase Planning)
@@ -1030,7 +1083,7 @@ Phase-based plan with acceptance criteria is in **Section 8**.
 **Deliverables:**
 - `k8s/` 매니페스트 (namespace, configmap, secret-template, web-deployment, mysql-statefulset, rbac, ingress)
 - `k8s/rbac.yaml`: ServiceAccount + namespace-scoped Role (`create`, `get`, `list`, `delete` on `jobs` in `batch` API group) + RoleBinding
-- `backtest_results` 테이블 스키마 (run_id, ticker, rule_type, rule_id, status, params_json, metrics_json, chart_base64, created_at)
+- `backtest_results` 테이블 스키마 (canonical definition: `Result Persistence Boundaries` 참조)
 - Service (ClusterIP for MySQL, NodePort/Ingress for Web)
 
 **Acceptance Criteria:**
@@ -1060,8 +1113,8 @@ Phase-based plan with acceptance criteria is in **Section 8**.
 - `ttlSecondsAfterFinished: 86400`은 실패한 Job의 fallback cleanup 역할. 성공한 Job은 TTL 만료 전에 Web이 선제 삭제.
 
 **Acceptance Criteria:**
-- Web에서 백테스트 요청 → K8s Job 생성 → MySQL에 결과 저장 → `/status/<run_id>` completed
-- Job 실패 시 `/status/<run_id>` → `{"status": "failed", "error_message": "..."}`
+- Web에서 백테스트 요청 → K8s Job 생성 → MySQL에 결과 저장 → `/status/<run_id>` → `{"status": "SUCCEEDED"}`
+- Job 실패 시 `/status/<run_id>` → `{"status": "FAILED", "error_message": "..."}`
 
 **Outputs:** `worker.py`, updated `app.py` (job launcher + status endpoint), `k8s/worker-job-template.yaml`
 
@@ -1107,7 +1160,7 @@ This phase focuses on verification of Rule 8 compliance (stdout/stderr logging a
 - `scripts/demo.sh` 실행 → 전체 파이프라인 성공, 결과 MySQL 확인 가능
 - `kubectl logs` 에서 `run_id`로 Web → Job 전 구간 요청 추적 가능
 
-**Outputs:** `scripts/demo.sh`, logging verification report (in RETROSPECTIVE.md)
+**Outputs:** `scripts/demo.sh`, logging verification report (in docs/RETROSPECTIVE.md)
 
 ---
 
@@ -1115,19 +1168,19 @@ This phase focuses on verification of Rule 8 compliance (stdout/stderr logging a
 
 **Goals:**
 - 아키텍처 다이어그램과 운영 가이드로 포트폴리오 완성도 확보
-- RETROSPECTIVE.md에 Phase 1-5 설계 결정 추가
+- `docs/RETROSPECTIVE.md`에 Phase 1-5 설계 결정 추가
 - README.md를 최종 상태로 업데이트
 
 **Deliverables:**
 - `docs/architecture.md` (Mermaid 다이어그램: 전체 흐름, K8s 토폴로지, CI/CD 파이프라인)
 - `docs/ops-guide.md` (배포, 롤백, 트러블슈팅 가이드)
-- RETROSPECTIVE.md 업데이트 (Phase 1-5 Q&A 추가)
+- `docs/RETROSPECTIVE.md` 업데이트 (Phase 1-5 Q&A 추가)
 
 **Acceptance Criteria:**
 - `docs/` 디렉터리에 2개 이상 문서 존재
-- RETROSPECTIVE.md에 인프라 관련 Q&A 3개 이상 추가
+- `docs/RETROSPECTIVE.md`에 인프라 관련 Q&A 3개 이상 추가
 
-**Outputs:** `docs/architecture.md`, `docs/ops-guide.md`, updated RETROSPECTIVE.md + README.md
+**Outputs:** `docs/architecture.md`, `docs/ops-guide.md`, updated `docs/RETROSPECTIVE.md` + README.md
 
 ---
 
@@ -1163,7 +1216,7 @@ This phase focuses on verification of Rule 8 compliance (stdout/stderr logging a
 ### SLOs (Service Level Objectives)
 
 - **Availability:** `/health` endpoint returns 200 OK ≥ 99% of the time (measured per hour)
-- **Backtest Completion:** ≥ 95% of submitted K8s Jobs reach `completed` status within 5 minutes
+- **Backtest Completion:** ≥ 95% of submitted K8s Jobs reach `SUCCEEDED` status within 5 minutes
 
 ### Rollback Procedure (3 steps)
 
@@ -1171,7 +1224,7 @@ This phase focuses on verification of Rule 8 compliance (stdout/stderr logging a
    (`argocd app sync stock-backtest --revision <prev-commit>`)
    — 또는 `k8s/web-deployment.yaml`의 image tag를 이전 SHA로 되돌리고 commit → Argo CD auto-sync
 2. **Verify health:** `curl http://<ingress>/health` → 200 OK on all Web Pods
-3. **Validate functionality:** submit test backtest → `/status/<run_id>` returns `completed` with valid metrics
+3. **Validate functionality:** submit test backtest → `/status/<run_id>` returns `SUCCEEDED` with valid metrics
 
 ### Incident Triage Checklist
 

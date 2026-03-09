@@ -24,7 +24,7 @@ from adapters.adapter import (
     render_trade_pnl_chart,
 )
 from extensions import db
-from job_launcher import create_job_launcher
+from launchers.job_launcher import create_job_launcher
 from models import Strategy
 
 app = Flask(__name__)

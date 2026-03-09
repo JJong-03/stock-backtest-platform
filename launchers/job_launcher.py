@@ -14,6 +14,33 @@ DEFAULT_WORKER_IMAGE = "stock-web:local"
 DEFAULT_CONFIGMAP_NAME = "web-config"
 DEFAULT_SECRET_NAME = "web-secret"
 
+# Optional worker env vars shared by both launchers.  (env_key, payload_key)
+_OPTIONAL_ENV_FIELDS = (
+    ("INITIAL_CAPITAL", "initial_capital"),
+    ("FEE_RATE", "fee_rate"),
+    ("SLIPPAGE_BPS", "slippage_bps"),
+    ("POSITION_SIZE", "position_size"),
+    ("SIZE_TYPE", "size_type"),
+    ("DIRECTION", "direction"),
+    ("TIMEFRAME", "timeframe"),
+)
+
+# OS / runtime keys forwarded to the subprocess in LOCAL mode.
+_SUBPROCESS_PASSTHROUGH_KEYS = (
+    "PATH",
+    "VIRTUAL_ENV",
+    "PYTHONPATH",
+    "LANG",
+    "LC_ALL",
+    "DATABASE_URL",
+    "DB_HOST",
+    "DB_PORT",
+    "DB_NAME",
+    "DB_USER",
+    "DB_PASSWORD",
+    "LOG_LEVEL",
+)
+
 
 def build_job_name(run_id: str) -> str:
     return f"worker-{run_id.replace('-', '')[:8].lower()}"
@@ -40,34 +67,31 @@ class LocalJobLauncher(JobLauncher):
     mode = "LOCAL"
 
     def __init__(self, worker_script: str | None = None, cwd: str | None = None):
-        project_root = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.cwd = cwd or project_root
         self.worker_script = worker_script or os.path.join(project_root, "worker.py")
 
     def launch(self, run_payload: Dict[str, Any]) -> None:
-        # strategy→RULE_TYPE 브릿지: rule_type 우선, 없으면 strategy fallback
-        rule_type = run_payload.get("rule_type") or run_payload.get("strategy", "")
+        env: Dict[str, str] = {}
+        for key in _SUBPROCESS_PASSTHROUGH_KEYS:
+            if key in os.environ:
+                env[key] = os.environ[key]
 
-
-        env = os.environ.copy()
         env.update(
             {
                 "RUN_ID": _stringify(run_payload.get("run_id")),
                 "TICKER": _stringify(run_payload.get("ticker")),
-                "RULE_TYPE": _stringify(rule_type), # rule_type이 strategy로 fallback하는 부분
-                
+                "RULE_TYPE": _stringify(run_payload.get("rule_type")),
                 "PARAMS_JSON": _stringify(run_payload.get("params_json")),
                 "START_DATE": _stringify(run_payload.get("start_date")),
                 "END_DATE": _stringify(run_payload.get("end_date")),
-                "INITIAL_CAPITAL": _stringify(run_payload.get("initial_capital", 100000)),
-                "FEE_RATE": _stringify(run_payload.get("fee_rate")),
-                "SLIPPAGE_BPS": _stringify(run_payload.get("slippage_bps")),
-                "POSITION_SIZE": _stringify(run_payload.get("position_size")),
-                "SIZE_TYPE": _stringify(run_payload.get("size_type")),
-                "DIRECTION": _stringify(run_payload.get("direction")),
-                "TIMEFRAME": _stringify(run_payload.get("timeframe")),
             }
         )
+
+        for env_key, payload_key in _OPTIONAL_ENV_FIELDS:
+            val = run_payload.get(payload_key)
+            if val is not None:
+                env[env_key] = _stringify(val)
 
         subprocess.Popen(
             [sys.executable, self.worker_script],
@@ -95,8 +119,15 @@ class K8sJobLauncher(JobLauncher):
 
         try:
             config.load_incluster_config()
-        except Exception:
-            config.load_kube_config()
+        except Exception as in_cluster_exc:
+            try:
+                config.load_kube_config()
+            except Exception as kube_exc:
+                raise RuntimeError(
+                    f"Kubernetes configuration failed. "
+                    f"In-cluster config error: {in_cluster_exc}; "
+                    f"kubeconfig error: {kube_exc}"
+                ) from kube_exc
 
         self._k8s_client = client
         self._api = client.BatchV1Api()
@@ -113,28 +144,12 @@ class K8sJobLauncher(JobLauncher):
             client.V1EnvVar(name="PARAMS_JSON", value=_stringify(run_payload.get("params_json"))),
             client.V1EnvVar(name="START_DATE", value=_stringify(run_payload.get("start_date"))),
             client.V1EnvVar(name="END_DATE", value=_stringify(run_payload.get("end_date"))),
-            client.V1EnvVar(
-                name="INITIAL_CAPITAL",
-                value=_stringify(run_payload.get("initial_capital", 100000)),
-            ),
         ]
 
-        if run_payload.get("fee_rate") is not None:
-            env.append(client.V1EnvVar(name="FEE_RATE", value=_stringify(run_payload.get("fee_rate"))))
-        if run_payload.get("slippage_bps") is not None:
-            env.append(
-                client.V1EnvVar(name="SLIPPAGE_BPS", value=_stringify(run_payload.get("slippage_bps")))
-            )
-        if run_payload.get("position_size") is not None:
-            env.append(
-                client.V1EnvVar(name="POSITION_SIZE", value=_stringify(run_payload.get("position_size")))
-            )
-        if run_payload.get("size_type") is not None:
-            env.append(client.V1EnvVar(name="SIZE_TYPE", value=_stringify(run_payload.get("size_type"))))
-        if run_payload.get("direction") is not None:
-            env.append(client.V1EnvVar(name="DIRECTION", value=_stringify(run_payload.get("direction"))))
-        if run_payload.get("timeframe") is not None:
-            env.append(client.V1EnvVar(name="TIMEFRAME", value=_stringify(run_payload.get("timeframe"))))
+        for env_key, payload_key in _OPTIONAL_ENV_FIELDS:
+            val = run_payload.get(payload_key)
+            if val is not None:
+                env.append(client.V1EnvVar(name=env_key, value=_stringify(val)))
 
         metadata = client.V1ObjectMeta(
             name=build_job_name(_stringify(run_payload.get("run_id"))),
@@ -183,7 +198,7 @@ class K8sJobLauncher(JobLauncher):
             self._api.delete_namespaced_job(
                 name=job_name,
                 namespace=self.namespace,
-                propagation_policy="Background",
+                body=self._k8s_client.V1DeleteOptions(propagation_policy="Background"),
             )
         except Exception as exc:
             # Swallow 404 to keep endpoint idempotent.
