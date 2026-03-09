@@ -1,6 +1,6 @@
 # Technical Retrospective & Architecture Overview
 
-> **Note:** `RETROSPECTIVE.md` is a **historical record** of engineering decisions made during Day 1–3.9 implementation.
+> **Note:** `docs/RETROSPECTIVE.md` is a **historical record** of engineering decisions made during Day 1–3.9 implementation.
 > For **normative** architectural invariants, operational rules, and contracts (Day 4+), refer to **`CLAUDE.md`**, which serves as the Single Source of Truth.
 
 > Day 1 ~ Day 3.9 구현 기반. 실제 코드베이스에서 확인 가능한 설계 결정만 기술.

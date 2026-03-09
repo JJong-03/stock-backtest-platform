@@ -925,10 +925,9 @@ stock_backtest/
 |
 |-- CLAUDE.md                          # 이 파일 (프로젝트 규칙 및 컨텍스트)
 |-- README.md                          # 프로젝트 소개 및 Quick Start
-|-- RETROSPECTIVE.md                   # 기술 회고 및 아키텍처 설명
 |-- requirements.txt                   # Python 의존성
+|-- requirements-dev.txt               # 개발 의존성 (gunicorn)
 |-- .gitignore                         # Git 제외 규칙
-|-- test_structure.py                  # 구조 검증 테스트
 |-- app.py                             # ✅ Flask 애플리케이션 진입점 (Controller)
 |-- worker.py                          # [Phase 3] K8s Job Worker 진입점
 |-- extensions.py                      # ✅ SQLAlchemy 인스턴스 (순환 import 방지)
@@ -941,6 +940,10 @@ stock_backtest/
 |-- .github/                           # [Phase 4] CI/CD
 |   +-- workflows/
 |       +-- ci.yml                     # Test → Build → Push (GitHub Actions)
+|
+|-- launchers/                         # [Phase 3] Job 오케스트레이션 패키지
+|   |-- __init__.py                    # Re-exports: create_job_launcher, build_job_name, JobLauncher
+|   +-- job_launcher.py               # JobLauncher 추상화 (Local/K8s 모드 전환)
 |
 |-- backtest/                          # 핵심 엔진 (IMMUTABLE)
 |   |-- __init__.py
@@ -989,9 +992,13 @@ stock_backtest/
 |   |-- rbac.yaml                      # ServiceAccount + Role + RoleBinding (namespace-scoped, jobs.batch only)
 |   +-- ingress.yaml
 |
-|-- docs/                              # [Phase 6] 프로젝트 문서
+|-- docs/                              # [Phase 6] 프로젝트 문서 + 기술 회고
+|   |-- RETROSPECTIVE.md              # 기술 회고 및 아키텍처 설명
+|   |-- AGENTS.md                     # Codex 에이전트 실행 플레이북
 |   |-- architecture.md                # 아키텍처 다이어그램 (Mermaid)
-|   +-- ops-guide.md                   # 운영 가이드 (배포, 롤백, 트러블슈팅)
+|   |-- ops-guide.md                   # 운영 가이드 (배포, 롤백, 트러블슈팅)
+|   +-- sql/
+|       +-- backtest_results.sql       # backtest_results 테이블 DDL 참조
 |
 |-- data/                              # OHLCV CSV 데이터 (AAPL.csv 데모 포함)
 ```
@@ -1000,7 +1007,7 @@ stock_backtest/
 
 ## 7. Short-Term Roadmap
 
-**Note:** Roadmap is high-level only. Detailed task lists belong in `RETROSPECTIVE.md` or Issues.
+**Note:** Roadmap is high-level only. Detailed task lists belong in `docs/RETROSPECTIVE.md` or Issues.
 Phase-based plan with acceptance criteria is in **Section 8**.
 
 ### Day 3 -- Flask Web Dashboard (✅ Completed — Pre-Phase Planning)
@@ -1153,7 +1160,7 @@ This phase focuses on verification of Rule 8 compliance (stdout/stderr logging a
 - `scripts/demo.sh` 실행 → 전체 파이프라인 성공, 결과 MySQL 확인 가능
 - `kubectl logs` 에서 `run_id`로 Web → Job 전 구간 요청 추적 가능
 
-**Outputs:** `scripts/demo.sh`, logging verification report (in RETROSPECTIVE.md)
+**Outputs:** `scripts/demo.sh`, logging verification report (in docs/RETROSPECTIVE.md)
 
 ---
 
@@ -1161,19 +1168,19 @@ This phase focuses on verification of Rule 8 compliance (stdout/stderr logging a
 
 **Goals:**
 - 아키텍처 다이어그램과 운영 가이드로 포트폴리오 완성도 확보
-- RETROSPECTIVE.md에 Phase 1-5 설계 결정 추가
+- `docs/RETROSPECTIVE.md`에 Phase 1-5 설계 결정 추가
 - README.md를 최종 상태로 업데이트
 
 **Deliverables:**
 - `docs/architecture.md` (Mermaid 다이어그램: 전체 흐름, K8s 토폴로지, CI/CD 파이프라인)
 - `docs/ops-guide.md` (배포, 롤백, 트러블슈팅 가이드)
-- RETROSPECTIVE.md 업데이트 (Phase 1-5 Q&A 추가)
+- `docs/RETROSPECTIVE.md` 업데이트 (Phase 1-5 Q&A 추가)
 
 **Acceptance Criteria:**
 - `docs/` 디렉터리에 2개 이상 문서 존재
-- RETROSPECTIVE.md에 인프라 관련 Q&A 3개 이상 추가
+- `docs/RETROSPECTIVE.md`에 인프라 관련 Q&A 3개 이상 추가
 
-**Outputs:** `docs/architecture.md`, `docs/ops-guide.md`, updated RETROSPECTIVE.md + README.md
+**Outputs:** `docs/architecture.md`, `docs/ops-guide.md`, updated `docs/RETROSPECTIVE.md` + README.md
 
 ---
 

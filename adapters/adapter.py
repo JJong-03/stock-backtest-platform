@@ -19,6 +19,9 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional, Union
 
+from backtest.metrics import PerformanceMetrics
+from utils import safe_float as _safe_float
+
 # Module-level logger (does NOT depend on Flask)
 logger = logging.getLogger(__name__)
 
@@ -339,6 +342,45 @@ def normalize_trades(
         })
 
     return normalized
+
+
+# ---------------------------------------------------------------------------
+# Metrics builder (moved from worker.py — pure transformation, no DB)
+# ---------------------------------------------------------------------------
+
+def build_metrics_json(
+    backtest_result: Dict[str, Any],
+    drawdown_curve: Any,
+    num_normalized_trades: int = 0,
+) -> Dict[str, Any]:
+    """Aggregate engine output + adapter-derived curves into canonical metrics.
+
+    This is a **pure transformation** — no DB interaction.  The returned dict
+    is the value that gets persisted as ``metrics_json`` by the worker.
+    """
+    metrics_report = PerformanceMetrics.generate_full_report(backtest_result)
+    risk = metrics_report.get("risk_metrics", {})
+    trading = metrics_report.get("trading_metrics", {})
+
+    max_drawdown_pct = 0.0
+    if drawdown_curve:
+        max_drawdown_pct = abs(
+            min(_safe_float(item.get("drawdown_pct", 0.0), 0.0) for item in drawdown_curve)
+        )
+
+    return {
+        "total_return_pct": round(_safe_float(backtest_result.get("total_return_pct")), 4),
+        "sharpe_ratio": round(_safe_float(risk.get("sharpe_ratio")), 6),
+        "sortino_ratio": round(_safe_float(risk.get("sortino_ratio")), 6),
+        "max_drawdown_pct": round(
+            max_drawdown_pct if drawdown_curve else _safe_float(risk.get("max_drawdown_pct")),
+            4,
+        ),
+        "num_trades": num_normalized_trades,
+        "win_rate": round(_safe_float(trading.get("win_rate", backtest_result.get("win_rate"))), 4),
+        "profit_factor": round(_safe_float(trading.get("profit_factor")), 6),
+        "final_value": round(_safe_float(backtest_result.get("final_value")), 4),
+    }
 
 
 def render_equity_chart(equity_curve: List[Dict[str, Any]]) -> Optional[str]:
