@@ -15,6 +15,13 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 
+from web_metrics import (
+    BACKTEST_REQUESTS_TOTAL,
+    JOB_LAUNCH_FAILURE_TOTAL,
+    JOB_LAUNCH_SUCCESS_TOTAL,
+    init_metrics,
+    sanitize_rule_type,
+)
 from adapters.adapter import (
     derive_drawdown_curve,
     render_cumulative_return_chart,
@@ -28,6 +35,7 @@ from launchers.job_launcher import create_job_launcher
 from models import Strategy
 
 app = Flask(__name__)
+init_metrics(app)
 logger = logging.getLogger(__name__)
 
 
@@ -341,32 +349,45 @@ def run_backtest():
 
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
+        BACKTEST_REQUESTS_TOTAL.labels(rule_type="unknown", outcome="rejected").inc()
         return _error_response(run_id, "Request body must be valid JSON object", 400)
 
     try:
         payload = _build_run_payload(data, run_id)
     except ValueError as exc:
         _run_log(run_id, f"user_error: {exc}", "warning")
+        rule_type = sanitize_rule_type(data.get("rule_type") or data.get("strategy"))
+        BACKTEST_REQUESTS_TOTAL.labels(rule_type=rule_type, outcome="rejected").inc()
         return _error_response(run_id, str(exc), 400)
+
+    rule_type = sanitize_rule_type(payload["rule_type"])
 
     try:
         _insert_pending_run(payload)
         _run_log(run_id, "Persisted PENDING state")
     except IntegrityError:
         db.session.rollback()
+        BACKTEST_REQUESTS_TOTAL.labels(rule_type=rule_type, outcome="error").inc()
         _run_log(run_id, "system_error: database integrity error while inserting PENDING", "exception")
         return _error_response(run_id, "Database integrity error", 500)
     except Exception as exc:
         db.session.rollback()
+        BACKTEST_REQUESTS_TOTAL.labels(rule_type=rule_type, outcome="error").inc()
         _run_log(run_id, f"system_error: failed to insert PENDING ({exc})", "exception")
         return _error_response(run_id, "Failed to persist run request", 500)
+
+    BACKTEST_REQUESTS_TOTAL.labels(rule_type=rule_type, outcome="accepted").inc()
 
     try:
         launcher = _get_job_launcher()
         launcher.launch(payload)
+        JOB_LAUNCH_SUCCESS_TOTAL.labels(rule_type=rule_type).inc()
         _run_log(run_id, f"Job launched via mode={getattr(launcher, 'mode', 'UNKNOWN')}")
     except Exception as exc:
+        # Defensive rollback: ensures any partial DB state from the launch
+        # attempt is cleaned up before proceeding with failure handling.
         db.session.rollback()
+        JOB_LAUNCH_FAILURE_TOTAL.labels(rule_type=rule_type).inc()
         error_message = f"Job launch failed: {exc}"
         _run_log(run_id, f"system_error: {error_message}", "exception")
 
