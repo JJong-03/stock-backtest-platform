@@ -987,10 +987,13 @@ stock_backtest/
 |   |-- configmap.yaml
 |   |-- secret-template.yaml           # Template only; real secrets via CI/CD or Sealed Secrets
 |   |-- web-deployment.yaml
+|   |-- web-service.yaml               # ClusterIP Service for web Deployment (port 80 → 5000)
+|   |-- web-servicemonitor.yaml        # [Phase 5] Prometheus Operator ServiceMonitor for /metrics scraping
 |   |-- worker-job-template.yaml
 |   |-- mysql-statefulset.yaml
 |   |-- rbac.yaml                      # ServiceAccount + Role + RoleBinding (namespace-scoped, jobs.batch only)
-|   +-- ingress.yaml
+|   |-- ingress.yaml
+|   +-- grafana-dashboard.json         # [Phase 5] Grafana dashboard definition (Prometheus datasource)
 |
 |-- docs/                              # [Phase 6] 프로젝트 문서 + 기술 회고
 |   |-- RETROSPECTIVE.md              # 기술 회고 및 아키텍처 설명
@@ -1235,3 +1238,130 @@ This phase focuses on verification of Rule 8 compliance (stdout/stderr logging a
 | 3. Job Status | `kubectl get jobs -n stock-backtest` | Failed jobs? `backoffLimit` exceeded? |
 | 4. DB Connectivity | `kubectl exec <web-pod> -- python -c "from extensions import db; ..."` (환경변수 기반 테스트 커맨드 예시; 실제 값은 환경별로 상이) | MySQL connection OK? Timeout? |
 | 5. Logs by run_id | `kubectl logs -l app=web \| grep <run_id>` + `kubectl logs job/<run_id>` | Trace full request path: Web → Job → DB |
+
+---
+
+## 12. Observability Stack
+
+> This section formalizes the Kubernetes-native observability architecture.
+> It extends Rule 8 (structured logging + run_id tracing) with metrics-based monitoring.
+> No application behavior, API contracts, persistence schema, or worker execution model is changed.
+
+### Stack Components
+
+**Primary (Phase 5):**
+
+| Component | Role | Deployment |
+|---|---|---|
+| **Prometheus** | Metrics collection & alerting | K8s Deployment or Helm chart (`kube-prometheus-stack`) |
+| **Grafana** | Visualization & dashboards | K8s Deployment, datasource: Prometheus |
+| **kube-state-metrics** | Exposes K8s object state as Prometheus metrics | Single-replica Deployment (bundled with `kube-prometheus-stack`) |
+
+**Optional Future Extensions:**
+
+| Component | Role | When to Adopt |
+|---|---|---|
+| Loki | Log aggregation (centralized log querying) | When `kubectl logs` becomes insufficient for multi-pod debugging |
+| OpenTelemetry | Distributed tracing (spans across Web → Worker → DB) | When request-level latency profiling is needed beyond run_id grep |
+
+### Prometheus Scrape Configuration
+
+Prometheus discovers the web Service's `/metrics` endpoint via a **ServiceMonitor** resource (`k8s/web-servicemonitor.yaml`).
+Annotation-based scraping (`prometheus.io/*`) is not used — the ServiceMonitor is the single scrape mechanism.
+
+- **Scrape target:** web Service only (long-running Deployment). Worker Job pods are NOT scraped.
+- **Port:** ServiceMonitor references the named port `http` on the web Service (port 80 → targetPort 5000).
+- **Path:** `/metrics`
+- **Interval:** 15s
+- **Scope:** Metrics scraping is cluster-internal only. `/metrics` is NOT exposed via Ingress.
+
+The ServiceMonitor requires the `release` label to match the Prometheus Operator's `serviceMonitorSelector`.
+The default value assumes a kube-prometheus-stack Helm release named `kube-prometheus-stack`.
+
+### Web Service Metrics (`/metrics` Endpoint)
+
+The Flask Web service exposes a `/metrics` endpoint using the **Prometheus Python client** (`prometheus_client`).
+This endpoint serves in-memory counters and histograms only — no filesystem writes (Rule 4 compliant).
+
+#### Web Layer Metrics
+
+| Metric | Type | Labels | Description |
+|---|---|---|---|
+| `http_requests_total` | Counter | `method`, `endpoint`, `status` | Total HTTP requests by method, endpoint, and status code |
+| `http_request_duration_seconds` | Histogram | `method`, `endpoint` | Request latency distribution |
+| `backtest_requests_total` | Counter | `rule_type`, `outcome` |
+Backtest submissions by rule type and outcome.
+`outcome` values: `accepted` (PENDING persisted, proceeding to launch),
+`rejected` (validation/user error, HTTP 400),
+`error` (system error before launch, e.g., DB insert failure, HTTP 500). |
+
+**Note:** 5xx error rates SHOULD be derived from `http_requests_total` using PromQL rather than tracked as a separate metric:
+```promql
+http_requests_total{status=~"5.."}
+```
+
+#### Job Orchestration Metrics
+
+| Metric | Type | Labels | Description |
+|---|---|---|---|
+| `job_launch_success_total` | Counter | `rule_type` | Successful K8s Job creations |
+| `job_launch_failure_total` | Counter | `rule_type` | Failed K8s Job creation attempts |
+
+**Note:** Job duration SHOULD be derived from kube-state-metrics using:
+```promql
+kube_job_status_completion_time - kube_job_status_start_time
+```
+This avoids duplicating timing data already available from the Kubernetes control plane.
+
+### Kubernetes-Level Monitoring
+
+Collected by **kube-state-metrics** + Prometheus scraping (no application code changes):
+
+| Signal | Source | Description |
+|---|---|---|
+| Job success / failure count | `kube_job_status_succeeded`, `kube_job_status_failed` | K8s Job completion metrics |
+| Pod restart count | `kube_pod_container_status_restarts_total` | Detects crash loops (Web or Worker) |
+| Worker execution duration | `kube_job_status_completion_time - kube_job_status_start_time` | Job-level runtime derived from K8s metadata |
+| Pod resource usage | `container_cpu_usage_seconds_total`, `container_memory_working_set_bytes` | Resource consumption (via cAdvisor / metrics-server) |
+
+### Grafana Dashboards
+
+Recommended dashboard panels:
+
+1. **Request Overview** — HTTP request rate, latency percentiles (p50/p95/p99), error rate
+2. **Backtest Pipeline** — Job launch rate, success/failure ratio, run duration distribution
+3. **Kubernetes Health** — Pod status, restart count, resource utilization
+4. **MySQL** — Connection pool usage, query latency (if MySQL exporter is deployed)
+
+### Label Cardinality Constraint
+
+> **CRITICAL:** `run_id` MUST NOT be used as a Prometheus metric label.
+
+`run_id` is a UUID4 with unbounded cardinality. Adding it as a label would cause
+Prometheus TSDB storage explosion and query performance degradation.
+
+**Correct separation of concerns:**
+
+| Data | Channel | Lookup Method |
+|---|---|---|
+| Per-request identity (`run_id`) | **Structured logs** (stdout/stderr) | `kubectl logs` + `grep run_id=<uuid>` |
+| Aggregate operational signals | **Prometheus metrics** | Grafana dashboards, PromQL queries |
+
+Allowed labels are low-cardinality dimensions only: `method`, `endpoint`, `status`, `rule_type`, `outcome`.
+
+**Endpoint Label Normalization:**
+
+The `endpoint` label MUST use Flask route templates, not resolved paths.
+Dynamic path parameters MUST be normalized to prevent cardinality explosion.
+
+| | Example |
+|---|---|
+| **Correct** | `endpoint="/status/<run_id>"` |
+| **Incorrect** | `endpoint="/status/a1b2c3d4-e5f6..."` |
+
+### Compliance Notes
+
+- **Rule 1 (Engine Immutability):** No engine changes. Metrics are collected in the Flask layer and Kubernetes infrastructure.
+- **Rule 2 (API Contracts):** `/metrics` is an operational endpoint, not part of the backtest API contract. No existing endpoints are modified.
+- **Rule 4 (Stateless Web):** `/metrics` serves in-memory counters only. No filesystem state.
+- **Rule 8 (Observability):** Prometheus metrics complement (not replace) structured logging with `run_id`.

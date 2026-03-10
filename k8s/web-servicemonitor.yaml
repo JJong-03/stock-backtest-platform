@@ -1,0 +1,21 @@
+# Prometheus Operator ServiceMonitor for the web Service.
+# Metrics scraping is cluster-internal only; /metrics is NOT exposed via Ingress.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: web
+  namespace: stock-backtest
+  labels:
+    app: web
+    # Prometheus Operator selects ServiceMonitors via serviceMonitorSelector.
+    # kube-prometheus-stack's default Helm release name is "kube-prometheus-stack".
+    # If your Helm release name differs, update this value to match.
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: web
+  endpoints:
+    - port: http          # matches Service port name "http" (port 80 → targetPort 5000)
+      path: /metrics
+      interval: 15s
