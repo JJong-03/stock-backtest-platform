@@ -23,7 +23,7 @@ spec:
       serviceAccountName: web-sa # rbac.yaml에서 정의한 ServiceAccount 사용
       containers:
         - name: web
-          image: ghcr.io/msp-architect-2026/stock-backtest:a8c644c # 웹 애플리케이션 컨테이너 이미지
+          image: ghcr.io/msp-architect-2026/stock-backtest:ff4661a # 웹 애플리케이션 컨테이너 이미지
 
           imagePullPolicy: IfNotPresent
           ports:
@@ -38,7 +38,7 @@ spec:
             - name: JOB_LAUNCHER_MODE
               value: "K8S" # k8s or LOCAL // LOCAL은 개발용, K8S는 실제 클러스터에서 실행할 때 사용
             - name: WORKER_IMAGE
-              value: "ghcr.io/msp-architect-2026/stock-backtest:a8c644c" # 작업자 컨테이너 이미지 (web과 동일)
+              value: "ghcr.io/msp-architect-2026/stock-backtest:ff4661a" # 작업자 컨테이너 이미지 (web과 동일)
 
           readinessProbe:  # 트래픽 받을 준비되었는지 체크
             httpGet:
