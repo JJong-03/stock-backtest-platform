@@ -372,7 +372,7 @@
     {
       "type": "timeseries",
       "title": "Job Launch Outcomes",
-      "description": "K8s Job creation success vs failure rate. Filtered by $rule_type.",
+      "description": "Job launch attempts recorded by the web application (success vs failure rate). Filtered by $rule_type. Based on application-level counters, not Kubernetes Job object state.",
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
@@ -488,15 +488,15 @@
     },
     {
       "type": "row",
-      "title": "Kubernetes Job Health",
+      "title": "Job Orchestration Health",
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 34 },
       "collapsed": false,
       "panels": []
     },
     {
       "type": "stat",
-      "title": "Jobs Succeeded",
-      "description": "Cumulative count of succeeded Jobs.",
+      "title": "Successful Launches",
+      "description": "Successful job launches recorded by the web layer. Uses application-level counters because successful K8s Jobs are deleted quickly and kube_job_status_succeeded is unreliable as a cumulative counter.",
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
@@ -504,7 +504,7 @@
       "gridPos": { "h": 8, "w": 4, "x": 0, "y": 35 },
       "targets": [
         {
-          "expr": "sum(kube_job_status_succeeded{namespace=\"stock-backtest\"})",
+          "expr": "sum(increase(job_launch_success_total[5m]))",
           "legendFormat": "Succeeded",
           "refId": "A"
         }
@@ -530,8 +530,8 @@
     },
     {
       "type": "stat",
-      "title": "Jobs Failed",
-      "description": "Cumulative count of failed Jobs.",
+      "title": "Failed Launches",
+      "description": "Failed job launches recorded by the web layer. Uses application-level counters for accurate tracking independent of K8s Job object lifecycle.",
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
@@ -539,7 +539,7 @@
       "gridPos": { "h": 8, "w": 4, "x": 4, "y": 35 },
       "targets": [
         {
-          "expr": "sum(kube_job_status_failed{namespace=\"stock-backtest\"})",
+          "expr": "sum(increase(job_launch_failure_total[5m]))",
           "legendFormat": "Failed",
           "refId": "A"
         }
@@ -566,8 +566,8 @@
     },
     {
       "type": "gauge",
-      "title": "Job Success Rate",
-      "description": "SLO target: ≥95%. Shows 0% when no Jobs have completed yet.",
+      "title": "Job Launch Success Rate",
+      "description": "SLO target: ≥95%. Based on application-level launch counters (not K8s Job object state). Shows 'No Launches' when no data is available.",
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
@@ -575,7 +575,7 @@
       "gridPos": { "h": 8, "w": 4, "x": 8, "y": 35 },
       "targets": [
         {
-          "expr": "sum(kube_job_status_succeeded{namespace=\"stock-backtest\"}) / clamp_min(sum(kube_job_status_succeeded{namespace=\"stock-backtest\"}) + sum(kube_job_status_failed{namespace=\"stock-backtest\"}), 1e-9) * 100",
+          "expr": "sum(increase(job_launch_success_total[5m])) / clamp_min(sum(increase(job_launch_success_total[5m])) + sum(increase(job_launch_failure_total[5m])), 1e-9) * 100",
           "legendFormat": "Success Rate",
           "refId": "A"
         }
@@ -642,8 +642,8 @@
     },
     {
       "type": "timeseries",
-      "title": "Backtest Execution Duration",
-      "description": "Per-Job duration (completion_time - start_time). Each point is one completed Job.",
+      "title": "Failed / Retained Job Duration",
+      "description": "Per-Job duration (completion_time - start_time) for Jobs still present in the cluster. Successful Jobs are deleted quickly by the web application after completion, so this panel mainly captures failed or retained Jobs useful for debugging. Do not use this panel to infer overall execution success statistics.",
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
