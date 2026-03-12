@@ -513,6 +513,37 @@ def render_drawdown_chart(drawdown_curve: List[Dict[str, Any]]) -> Optional[str]
             plt.close(fig)
 
 
+def _get_trade_date_range(
+    trades: List[Dict[str, Any]],
+    date_labels: List[str],
+    padding_pct: float = 0.05,
+) -> Optional[tuple]:
+    """Return (x_min, x_max) index range covering the trade activity period.
+
+    Collects all entry/exit dates from *trades*, maps them to indices in
+    *date_labels*, then adds a small visual padding (default 5% of span,
+    at least 1 bar on each side).
+
+    Returns None when no trade dates can be mapped — callers should fall
+    back to showing the full dataset range.
+    """
+    trade_indices: List[int] = []
+    for trade in (trades or []):
+        for key in ('entry_timestamp', 'exit_timestamp'):
+            ts = trade.get(key, '')
+            d = ts[:10] if ts else ''
+            if d in date_labels:
+                trade_indices.append(date_labels.index(d))
+    if not trade_indices:
+        return None
+    lo, hi = min(trade_indices), max(trade_indices)
+    span = max(hi - lo, 1)
+    pad = max(1, int(span * padding_pct))
+    x_min = max(0, lo - pad)
+    x_max = min(len(date_labels) - 1, hi + pad)
+    return (x_min, x_max)
+
+
 def render_orders_chart(
     price_df: pd.DataFrame,
     trades: List[Dict[str, Any]]
@@ -532,6 +563,7 @@ def render_orders_chart(
         - SELL markers: red triangle down (v) at exit dates
         - Legend: fixed at upper-left (loc="upper left")
         - Separate figure (no subplots)
+        - X-axis is focused on the trade activity period when trades exist
     """
     if price_df is None or price_df.empty:
         logger.warning("render_orders_chart received empty price_df")
@@ -553,7 +585,7 @@ def render_orders_chart(
         closes = price_df['Close'].values
         x_indices = list(range(len(price_df)))
 
-        fig, ax = plt.subplots(figsize=(12, 5))
+        fig, ax = plt.subplots(figsize=(12, 6))
 
         ax.plot(x_indices, closes, color='#4dabf7', linewidth=1.2, label='Close')
 
@@ -583,6 +615,31 @@ def render_orders_chart(
             ax.scatter(sell_x, sell_y, marker='v', s=80, color='#ff6b6b',
                        zorder=5, label='SELL', edgecolors='white', linewidths=0.5)
 
+        # Focus x-axis on trade activity period
+        trade_range = _get_trade_date_range(trades, date_labels)
+        if trade_range:
+            x_min, x_max = trade_range
+            ax.set_xlim(x_min, x_max)
+            # Generate tick labels within the visible range
+            visible_len = x_max - x_min + 1
+            n_labels = min(10, visible_len)
+            step = max(1, visible_len // n_labels)
+            tick_positions = list(range(x_min, x_max + 1, step))
+            ax.set_xticks(tick_positions)
+            ax.set_xticklabels(
+                [date_labels[i] for i in tick_positions],
+                rotation=45, ha='right', fontsize=8
+            )
+        else:
+            # No trades — show full range
+            n_labels = min(10, len(date_labels))
+            step = max(1, len(date_labels) // n_labels)
+            ax.set_xticks(range(0, len(date_labels), step))
+            ax.set_xticklabels(
+                [date_labels[i] for i in range(0, len(date_labels), step)],
+                rotation=45, ha='right', fontsize=8
+            )
+
         # Styling
         ax.set_facecolor('#0a0a0a')
         fig.patch.set_facecolor('#0a0a0a')
@@ -597,15 +654,6 @@ def render_orders_chart(
                      loc='left', pad=10)
         ax.legend(loc='upper left', framealpha=0.7, fontsize=9)
         ax.grid(True, alpha=0.15, color='#1e1e1e', linewidth=0.5)
-
-        # X-axis labels
-        n_labels = min(10, len(date_labels))
-        step = max(1, len(date_labels) // n_labels)
-        ax.set_xticks(range(0, len(date_labels), step))
-        ax.set_xticklabels(
-            [date_labels[i] for i in range(0, len(date_labels), step)],
-            rotation=45, ha='right', fontsize=8
-        )
 
         plt.tight_layout()
 
@@ -658,7 +706,7 @@ def render_trade_pnl_chart(
             else:
                 date_labels.append(str(d)[:10])
 
-        fig, ax = plt.subplots(figsize=(12, 5))
+        fig, ax = plt.subplots(figsize=(12, 6))
 
         # Separate profit/loss for legend
         profit_x, profit_y = [], []
@@ -688,6 +736,29 @@ def render_trade_pnl_chart(
         # Zero reference line
         ax.axhline(y=0, color='#666666', linestyle='-', linewidth=1)
 
+        # Focus x-axis on trade activity period
+        trade_range = _get_trade_date_range(trades, date_labels)
+        if trade_range:
+            x_min, x_max = trade_range
+            ax.set_xlim(x_min, x_max)
+            visible_len = x_max - x_min + 1
+            n_labels = min(10, visible_len)
+            step = max(1, visible_len // n_labels)
+            tick_positions = list(range(x_min, x_max + 1, step))
+            ax.set_xticks(tick_positions)
+            ax.set_xticklabels(
+                [date_labels[i] for i in tick_positions],
+                rotation=45, ha='right', fontsize=8
+            )
+        else:
+            n_labels = min(10, len(date_labels))
+            step = max(1, len(date_labels) // n_labels)
+            ax.set_xticks(range(0, len(date_labels), step))
+            ax.set_xticklabels(
+                [date_labels[i] for i in range(0, len(date_labels), step)],
+                rotation=45, ha='right', fontsize=8
+            )
+
         # Styling
         ax.set_facecolor('#0a0a0a')
         fig.patch.set_facecolor('#0a0a0a')
@@ -704,15 +775,6 @@ def render_trade_pnl_chart(
         if profit_x or loss_x:
             ax.legend(loc='upper left', framealpha=0.7, fontsize=9)
         ax.grid(True, alpha=0.15, color='#1e1e1e', linewidth=0.5)
-
-        # X-axis labels
-        n_labels = min(10, len(date_labels))
-        step = max(1, len(date_labels) // n_labels)
-        ax.set_xticks(range(0, len(date_labels), step))
-        ax.set_xticklabels(
-            [date_labels[i] for i in range(0, len(date_labels), step)],
-            rotation=45, ha='right', fontsize=8
-        )
 
         plt.tight_layout()
 
