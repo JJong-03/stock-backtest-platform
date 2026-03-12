@@ -585,7 +585,7 @@ def render_orders_chart(
         closes = price_df['Close'].values
         x_indices = list(range(len(price_df)))
 
-        fig, ax = plt.subplots(figsize=(12, 6))
+        fig, ax = plt.subplots(figsize=(12, 5.2))
 
         ax.plot(x_indices, closes, color='#4dabf7', linewidth=1.2, label='Close')
 
@@ -706,7 +706,7 @@ def render_trade_pnl_chart(
             else:
                 date_labels.append(str(d)[:10])
 
-        fig, ax = plt.subplots(figsize=(12, 6))
+        fig, ax = plt.subplots(figsize=(12, 5.2))
 
         # Separate profit/loss for legend
         profit_x, profit_y = [], []
