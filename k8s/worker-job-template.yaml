@@ -19,7 +19,7 @@ spec:
       containers:
         - name: worker
           # Phase 4에서 GHCR:<git-sha>로 전환 예정
-          image: ghcr.io/msp-architect-2026/stock-backtest:78f17c0
+          image: ghcr.io/msp-architect-2026/stock-backtest:0626767
           imagePullPolicy: IfNotPresent
           command: ["python", "worker.py"] # worker.py 실행, 
           envFrom:
