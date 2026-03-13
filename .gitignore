@@ -51,7 +51,7 @@ Thumbs.db
 .claude/
 
 # Data files — ignore all CSVs except AAPL.csv (demo)
-data/*.csv
+# data/*.csv
 # !data/AAPL.csv
 
 # Logs
