@@ -121,6 +121,3 @@ python -m pytest tests/ -v
 | **Architecture & Ops** | [Infra Architecture](https://github.com/msp-architect-2026/kim-jongwon/wiki/Infra-Architecture) · [CI/CD & GitOps](https://github.com/msp-architect-2026/kim-jongwon/wiki/CI_CD_GitOps) · [Observability](https://github.com/msp-architect-2026/kim-jongwon/wiki/Observability) · [ADR (Design Decisions)](https://github.com/msp-architect-2026/kim-jongwon/wiki/ADR-Design-Decisions) |
 | **Operations** | [Deployment & Setup Guide](https://github.com/msp-architect-2026/kim-jongwon/wiki/Deployment-and-Setup-Guide) · [E2E Demo Verification](https://github.com/msp-architect-2026/kim-jongwon/wiki/E2E-demo-verification) · [Runbook (Troubleshooting)](https://github.com/msp-architect-2026/kim-jongwon/wiki/Runbook-Troubleshooting) |
 | **Reference** | [API & Schemas](https://github.com/msp-architect-2026/kim-jongwon/wiki/API-Endpoints-%26-Schemas) · [ERD](https://github.com/msp-architect-2026/kim-jongwon/wiki/ERD-Data-Model) · [Security Model](https://github.com/msp-architect-2026/kim-jongwon/wiki/Security-Model) · [Testing Strategy](https://github.com/msp-architect-2026/kim-jongwon/wiki/Testing-Strategy) · [UI 화면구성](https://github.com/msp-architect-2026/kim-jongwon/wiki/UI-%ED%99%94%EB%A9%B4%EA%B5%AC%EC%84%B1) · [Glossary](https://github.com/msp-architect-2026/kim-jongwon/wiki/Glossary) |
-
-
-# ci_cd test2
