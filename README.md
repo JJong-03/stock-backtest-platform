@@ -1,5 +1,10 @@
 # Kubernetes 기반 주식 백테스트 플랫폼 (Stock Backtesting Platform)
 
+> 본 저장소는 부트캠프에서 수행한 개인 프로젝트를 포트폴리오용으로 정리한 저장소입니다.
+> 실제 개발과 상세 문서화는 부트캠프 organization 저장소에서 진행되었습니다.
+> 상세 설계 문서, 운영 가이드, 위키 문서는 아래 링크에서 확인할 수 있습니다.
+> [Organization Wiki 바로가기](https://github.com/msp-architect-2026/kim-jongwon/wiki)
+
 <div align="center">
   <img src="https://img.shields.io/badge/Python-151515?style=for-the-badge&logo=python&logoColor=3776AB" alt="Python" />
   <img src="https://img.shields.io/badge/Flask-151515?style=for-the-badge&logo=flask&logoColor=white" alt="Flask" />
