@@ -17,7 +17,7 @@ spec:
   project: default
 
   source:
-    repoURL: https://github.com/msp-architect-2026/kim-jongwon.git
+    repoURL: https://github.com/JJong-03/stock-backtest-platform.git
     targetRevision: main
     path: k8s
     directory:
