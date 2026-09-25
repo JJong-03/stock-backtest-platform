@@ -1,0 +1,1905 @@
+{
+  "environment": "kind v0.27.0 single node, Kubernetes v1.32.2, WSL2 Docker 29.1.3 (12 CPU, ~7.7GiB), image stock-backtest:measure-3bcac46, client pod in cluster, poll 2s",
+  "configs": {
+    "a": {
+      "measured_at": "2026-09-25T04:31:06+00:00",
+      "body": {
+        "ticker": "AAPL.csv",
+        "rule_type": "RSI",
+        "params": {},
+        "start_date": "2020-01-01",
+        "end_date": "2024-12-31"
+      },
+      "rounds": [
+        {
+          "mode": "sequential",
+          "n": 5,
+          "runs": [
+            {
+              "run_id": "f380e701-c1a4-4cd9-bfee-1decac7cc752",
+              "status": "SUCCEEDED",
+              "accept_s": 1.128,
+              "start_s": 2.898,
+              "worker_s": 1.0,
+              "e2e_s": 6.742,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "e0fc41f3-0c48-4d7a-8eb3-6b1387d78729",
+              "status": "SUCCEEDED",
+              "accept_s": 0.018,
+              "start_s": 2.156,
+              "worker_s": 0.0,
+              "e2e_s": 5.595,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "81beac75-7764-405d-9dfa-cc8129fce9d0",
+              "status": "SUCCEEDED",
+              "accept_s": 0.019,
+              "start_s": 2.56,
+              "worker_s": 0.0,
+              "e2e_s": 5.578,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "93557aa3-d05e-4957-a86f-1944006ba7a7",
+              "status": "SUCCEEDED",
+              "accept_s": 0.019,
+              "start_s": 0.982,
+              "worker_s": 0.0,
+              "e2e_s": 4.75,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "00006b2f-7444-4a11-98a9-f643522ec305",
+              "status": "SUCCEEDED",
+              "accept_s": 0.04,
+              "start_s": 2.232,
+              "worker_s": 0.0,
+              "e2e_s": 5.657,
+              "error": null,
+              "poll_errors": 0
+            }
+          ],
+          "summary": {
+            "requests": 5,
+            "succeeded": 5,
+            "failed": 0,
+            "poll_errors": 0,
+            "accept_s": {
+              "min": 0.018,
+              "median": 0.019,
+              "p95": 1.128,
+              "max": 1.128
+            },
+            "start_s": {
+              "min": 0.982,
+              "median": 2.232,
+              "p95": 2.898,
+              "max": 2.898
+            },
+            "worker_s": {
+              "min": 0.0,
+              "median": 0.0,
+              "p95": 1.0,
+              "max": 1.0
+            },
+            "e2e_s": {
+              "min": 4.75,
+              "median": 5.595,
+              "p95": 6.742,
+              "max": 6.742
+            }
+          }
+        },
+        {
+          "mode": "concurrent",
+          "n": 10,
+          "runs": [
+            {
+              "run_id": "8db308f5-de8c-4fb5-bbd4-cf50275f3645",
+              "status": "SUCCEEDED",
+              "accept_s": 0.023,
+              "start_s": 3.574,
+              "worker_s": 1.0,
+              "e2e_s": 7.839,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "434b1976-0018-4b56-93ce-45ddb511ce9d",
+              "status": "SUCCEEDED",
+              "accept_s": 0.062,
+              "start_s": 4.573,
+              "worker_s": 0.0,
+              "e2e_s": 9.712,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "fd94da8c-31d8-4386-96b3-267a94849ebb",
+              "status": "SUCCEEDED",
+              "accept_s": 0.086,
+              "start_s": 4.573,
+              "worker_s": 0.0,
+              "e2e_s": 11.276,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "2f43de1b-9881-4a34-9cdd-9bb18559a1a5",
+              "status": "SUCCEEDED",
+              "accept_s": 0.115,
+              "start_s": 4.572,
+              "worker_s": 1.0,
+              "e2e_s": 12.789,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "62bf91e4-5786-445c-89c5-318f1ee1eac4",
+              "status": "SUCCEEDED",
+              "accept_s": 0.137,
+              "start_s": 4.571,
+              "worker_s": 0.0,
+              "e2e_s": 14.686,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "f5927a4e-0010-4247-9218-544dd2aae82c",
+              "status": "SUCCEEDED",
+              "accept_s": 0.164,
+              "start_s": 4.571,
+              "worker_s": 0.0,
+              "e2e_s": 17.792,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "bedaf698-1578-4589-85ef-f9465cabf43c",
+              "status": "SUCCEEDED",
+              "accept_s": 0.183,
+              "start_s": 5.57,
+              "worker_s": 0.0,
+              "e2e_s": 16.188,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "30d20760-1b3c-4c47-94e2-c52d8bd5d68b",
+              "status": "SUCCEEDED",
+              "accept_s": 0.207,
+              "start_s": 4.569,
+              "worker_s": 1.0,
+              "e2e_s": 19.273,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "72170d35-137b-4687-89f8-82e4bc6f53fb",
+              "status": "SUCCEEDED",
+              "accept_s": 0.227,
+              "start_s": 4.569,
+              "worker_s": 0.0,
+              "e2e_s": 21.033,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "03e8599e-f62e-4590-91eb-b420c787efaa",
+              "status": "SUCCEEDED",
+              "accept_s": 0.254,
+              "start_s": 5.568,
+              "worker_s": 0.0,
+              "e2e_s": 21.465,
+              "error": null,
+              "poll_errors": 0
+            }
+          ],
+          "summary": {
+            "requests": 10,
+            "succeeded": 10,
+            "failed": 0,
+            "poll_errors": 0,
+            "accept_s": {
+              "min": 0.023,
+              "median": 0.151,
+              "p95": 0.254,
+              "max": 0.254
+            },
+            "start_s": {
+              "min": 3.574,
+              "median": 4.572,
+              "p95": 5.57,
+              "max": 5.57
+            },
+            "worker_s": {
+              "min": 0.0,
+              "median": 0.0,
+              "p95": 1.0,
+              "max": 1.0
+            },
+            "e2e_s": {
+              "min": 7.839,
+              "median": 15.437,
+              "p95": 21.465,
+              "max": 21.465
+            },
+            "wall_s": 21.473,
+            "runs_per_min": 27.94
+          }
+        },
+        {
+          "mode": "concurrent",
+          "n": 20,
+          "runs": [
+            {
+              "run_id": "4ab97d58-37d7-4688-bbeb-d04f26982623",
+              "status": "SUCCEEDED",
+              "accept_s": 0.052,
+              "start_s": 7.101,
+              "worker_s": 1.0,
+              "e2e_s": 13.847,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "68f100e6-debe-405c-b67c-3b0fb35002f1",
+              "status": "SUCCEEDED",
+              "accept_s": 0.022,
+              "start_s": 7.101,
+              "worker_s": 1.0,
+              "e2e_s": 11.407,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "e9e6fb01-1b5b-424d-9738-e88514c79d8c",
+              "status": "SUCCEEDED",
+              "accept_s": 0.082,
+              "start_s": 9.101,
+              "worker_s": 0.0,
+              "e2e_s": 15.664,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "c568f9ff-67b9-4656-bb7c-a58be5e977fb",
+              "status": "SUCCEEDED",
+              "accept_s": 0.107,
+              "start_s": 10.1,
+              "worker_s": 0.0,
+              "e2e_s": 17.333,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "e3f2a921-9fdf-46b1-aea3-99cc87bd23b9",
+              "status": "SUCCEEDED",
+              "accept_s": 0.13,
+              "start_s": 7.1,
+              "worker_s": 1.0,
+              "e2e_s": 19.188,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "cad29b08-a339-4d44-9eec-2e1798730e62",
+              "status": "SUCCEEDED",
+              "accept_s": 0.155,
+              "start_s": 9.099,
+              "worker_s": 1.0,
+              "e2e_s": 22.378,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "5b6952c3-788c-41c5-80d7-55b6ec6317e6",
+              "status": "SUCCEEDED",
+              "accept_s": 0.175,
+              "start_s": 11.099,
+              "worker_s": 0.0,
+              "e2e_s": 27.463,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "03af558c-a62a-48e8-860a-0f42fc0406fc",
+              "status": "SUCCEEDED",
+              "accept_s": 0.201,
+              "start_s": 10.098,
+              "worker_s": 0.0,
+              "e2e_s": 20.894,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "ef329504-d834-4f40-9a94-8b40bd9614da",
+              "status": "SUCCEEDED",
+              "accept_s": 0.223,
+              "start_s": 9.097,
+              "worker_s": 0.0,
+              "e2e_s": 25.83,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "0de45178-b802-464c-a41d-39bb822afc6c",
+              "status": "SUCCEEDED",
+              "accept_s": 0.244,
+              "start_s": 7.096,
+              "worker_s": 1.0,
+              "e2e_s": 23.96,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "2906f6d5-31de-489b-b6f9-4f45b0f76b8e",
+              "status": "SUCCEEDED",
+              "accept_s": 0.268,
+              "start_s": 11.096,
+              "worker_s": 0.0,
+              "e2e_s": 31.165,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "e081f412-aa87-4626-9846-c99ffe30071f",
+              "status": "SUCCEEDED",
+              "accept_s": 0.313,
+              "start_s": 7.095,
+              "worker_s": 1.0,
+              "e2e_s": 29.037,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "bc15ba86-03c0-4b77-acea-1f4d55f15a42",
+              "status": "SUCCEEDED",
+              "accept_s": 0.285,
+              "start_s": 10.095,
+              "worker_s": 0.0,
+              "e2e_s": 31.716,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "988f8c76-4672-4f4b-aed5-b2883d0e61f2",
+              "status": "SUCCEEDED",
+              "accept_s": 0.33,
+              "start_s": 10.094,
+              "worker_s": 0.0,
+              "e2e_s": 33.484,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "5715474f-d12e-41ed-9ac9-a7f700962dbe",
+              "status": "SUCCEEDED",
+              "accept_s": 0.348,
+              "start_s": 10.093,
+              "worker_s": 0.0,
+              "e2e_s": 35.043,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "c26f2341-1e7f-4fa5-93e4-0998e29c4b9f",
+              "status": "SUCCEEDED",
+              "accept_s": 0.383,
+              "start_s": 11.093,
+              "worker_s": 0.0,
+              "e2e_s": 40.006,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "740bdeb2-a7c1-4bfd-ab27-c18370d79937",
+              "status": "SUCCEEDED",
+              "accept_s": 0.362,
+              "start_s": 9.092,
+              "worker_s": 0.0,
+              "e2e_s": 36.915,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "f0b2fd67-1780-4459-aacd-794021ff80d0",
+              "status": "SUCCEEDED",
+              "accept_s": 0.42,
+              "start_s": 11.09,
+              "worker_s": 1.0,
+              "e2e_s": 38.431,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "9f8e1ca6-a69c-45f7-b090-ead5d20dfe21",
+              "status": "SUCCEEDED",
+              "accept_s": 0.446,
+              "start_s": 11.089,
+              "worker_s": 1.0,
+              "e2e_s": 41.731,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "36fb6b3a-8dde-48d1-9a76-db81f493fa97",
+              "status": "SUCCEEDED",
+              "accept_s": 0.477,
+              "start_s": 11.088,
+              "worker_s": 0.0,
+              "e2e_s": 43.324,
+              "error": null,
+              "poll_errors": 0
+            }
+          ],
+          "summary": {
+            "requests": 20,
+            "succeeded": 20,
+            "failed": 0,
+            "poll_errors": 0,
+            "accept_s": {
+              "min": 0.022,
+              "median": 0.256,
+              "p95": 0.446,
+              "max": 0.477
+            },
+            "start_s": {
+              "min": 7.095,
+              "median": 10.093,
+              "p95": 11.096,
+              "max": 11.099
+            },
+            "worker_s": {
+              "min": 0.0,
+              "median": 0.0,
+              "p95": 1.0,
+              "max": 1.0
+            },
+            "e2e_s": {
+              "min": 11.407,
+              "median": 28.25,
+              "p95": 41.731,
+              "max": 43.324
+            },
+            "wall_s": 43.343,
+            "runs_per_min": 27.69
+          }
+        }
+      ],
+      "label": "A 기본 설정: gunicorn 워커 1개, CPU 한도 500m, 메모리 한도 512Mi"
+    },
+    "b": {
+      "measured_at": "2026-09-25T04:33:21+00:00",
+      "body": {
+        "ticker": "AAPL.csv",
+        "rule_type": "RSI",
+        "params": {},
+        "start_date": "2020-01-01",
+        "end_date": "2024-12-31"
+      },
+      "rounds": [
+        {
+          "mode": "sequential",
+          "n": 5,
+          "runs": [
+            {
+              "run_id": "f1b2d527-ed86-45f5-b42a-bfa3e5a2deec",
+              "status": "SUCCEEDED",
+              "accept_s": 1.241,
+              "start_s": 3.438,
+              "worker_s": 0.0,
+              "e2e_s": 7.691,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "8789e1fa-525d-448f-b59e-8e80a9d16b60",
+              "status": "SUCCEEDED",
+              "accept_s": 0.024,
+              "start_s": 0.746,
+              "worker_s": 1.0,
+              "e2e_s": 5.498,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "63cf8427-eb93-49a4-aa2b-916296ca5599",
+              "status": "SUCCEEDED",
+              "accept_s": 0.02,
+              "start_s": 2.248,
+              "worker_s": 0.0,
+              "e2e_s": 5.562,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "3c26019b-64e6-495e-89f3-fa158aca6776",
+              "status": "SUCCEEDED",
+              "accept_s": 0.022,
+              "start_s": 2.686,
+              "worker_s": 0.0,
+              "e2e_s": 5.728,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "331a3edf-c973-481c-932d-fe52151d4835",
+              "status": "SUCCEEDED",
+              "accept_s": 0.017,
+              "start_s": 1.958,
+              "worker_s": 1.0,
+              "e2e_s": 5.652,
+              "error": null,
+              "poll_errors": 0
+            }
+          ],
+          "summary": {
+            "requests": 5,
+            "succeeded": 5,
+            "failed": 0,
+            "poll_errors": 0,
+            "accept_s": {
+              "min": 0.017,
+              "median": 0.022,
+              "p95": 1.241,
+              "max": 1.241
+            },
+            "start_s": {
+              "min": 0.746,
+              "median": 2.248,
+              "p95": 3.438,
+              "max": 3.438
+            },
+            "worker_s": {
+              "min": 0.0,
+              "median": 0.0,
+              "p95": 1.0,
+              "max": 1.0
+            },
+            "e2e_s": {
+              "min": 5.498,
+              "median": 5.652,
+              "p95": 7.691,
+              "max": 7.691
+            }
+          }
+        },
+        {
+          "mode": "concurrent",
+          "n": 10,
+          "runs": [
+            {
+              "run_id": "90ecc886-79e6-4770-86b2-06fec373c169",
+              "status": "SUCCEEDED",
+              "accept_s": 0.025,
+              "start_s": 4.305,
+              "worker_s": 0.0,
+              "e2e_s": 69.172,
+              "error": null,
+              "poll_errors": 22
+            },
+            {
+              "run_id": "e571191f-daec-41e9-9933-ea9efdff6782",
+              "status": "SUCCEEDED",
+              "accept_s": 0.024,
+              "start_s": 4.304,
+              "worker_s": 0.0,
+              "e2e_s": 28.755,
+              "error": null,
+              "poll_errors": 6
+            },
+            {
+              "run_id": "e322f0e8-e370-496d-8c5d-fb64459fda89",
+              "status": "SUCCEEDED",
+              "accept_s": 0.06,
+              "start_s": 4.304,
+              "worker_s": 0.0,
+              "e2e_s": 69.873,
+              "error": null,
+              "poll_errors": 18
+            },
+            {
+              "run_id": "3e0d1e1b-a0c9-4026-a586-dea3853068de",
+              "status": "SUCCEEDED",
+              "accept_s": 0.023,
+              "start_s": 4.303,
+              "worker_s": 0.0,
+              "e2e_s": 77.108,
+              "error": null,
+              "poll_errors": 4
+            },
+            {
+              "run_id": "05ccc5f2-eea6-472e-b512-47d343b0bc09",
+              "status": "SUCCEEDED",
+              "accept_s": 0.052,
+              "start_s": 4.303,
+              "worker_s": 0.0,
+              "e2e_s": 30.063,
+              "error": null,
+              "poll_errors": 1
+            },
+            {
+              "run_id": "53f6ff48-3d46-4c3b-a8b4-7b74b9d1845e",
+              "status": "SUCCEEDED",
+              "accept_s": 0.096,
+              "start_s": 4.302,
+              "worker_s": 1.0,
+              "e2e_s": 29.46,
+              "error": null,
+              "poll_errors": 1
+            },
+            {
+              "run_id": "77cf27c1-f8e0-4c0f-8fa3-ef8093e24aa6",
+              "status": "SUCCEEDED",
+              "accept_s": 0.115,
+              "start_s": 4.301,
+              "worker_s": 0.0,
+              "e2e_s": 76.905,
+              "error": null,
+              "poll_errors": 4
+            },
+            {
+              "run_id": "66a0bd15-669e-48a6-8ef8-c3931f464682",
+              "status": "SUCCEEDED",
+              "accept_s": 0.115,
+              "start_s": 4.3,
+              "worker_s": 0.0,
+              "e2e_s": 79.416,
+              "error": null,
+              "poll_errors": 5
+            },
+            {
+              "run_id": "c4752b88-e607-4edf-ba16-b78effdeec28",
+              "status": "SUCCEEDED",
+              "accept_s": 0.118,
+              "start_s": 4.299,
+              "worker_s": 0.0,
+              "e2e_s": 33.262,
+              "error": null,
+              "poll_errors": 1
+            },
+            {
+              "run_id": "d4ff6e8d-0fe8-4a65-974e-b5da5add0d71",
+              "status": "SUCCEEDED",
+              "accept_s": 0.143,
+              "start_s": 4.299,
+              "worker_s": 1.0,
+              "e2e_s": 78.897,
+              "error": null,
+              "poll_errors": 4
+            }
+          ],
+          "summary": {
+            "requests": 10,
+            "succeeded": 10,
+            "failed": 0,
+            "poll_errors": 66,
+            "accept_s": {
+              "min": 0.023,
+              "median": 0.078,
+              "p95": 0.143,
+              "max": 0.143
+            },
+            "start_s": {
+              "min": 4.299,
+              "median": 4.303,
+              "p95": 4.305,
+              "max": 4.305
+            },
+            "worker_s": {
+              "min": 0.0,
+              "median": 0.0,
+              "p95": 1.0,
+              "max": 1.0
+            },
+            "e2e_s": {
+              "min": 28.755,
+              "median": 69.523,
+              "p95": 79.416,
+              "max": 79.416
+            },
+            "wall_s": 79.422,
+            "runs_per_min": 7.55
+          }
+        },
+        {
+          "mode": "concurrent",
+          "n": 20,
+          "runs": [
+            {
+              "run_id": "31102eb4-735b-479e-a381-c349179f0560",
+              "status": "SUCCEEDED",
+              "accept_s": 0.024,
+              "start_s": 5.883,
+              "worker_s": 1.0,
+              "e2e_s": 483.341,
+              "error": null,
+              "poll_errors": 10
+            },
+            {
+              "run_id": "555fea50-d53a-4fe0-a62b-cf612c117fa4",
+              "status": "SUCCEEDED",
+              "accept_s": 0.028,
+              "start_s": 8.883,
+              "worker_s": 0.0,
+              "e2e_s": 85.956,
+              "error": null,
+              "poll_errors": 1
+            },
+            {
+              "run_id": "a4969d2b-4d42-40a1-9659-63bd030b4245",
+              "status": "SUCCEEDED",
+              "accept_s": 0.028,
+              "start_s": 8.882,
+              "worker_s": 0.0,
+              "e2e_s": 259.014,
+              "error": null,
+              "poll_errors": 49
+            },
+            {
+              "run_id": "42d7e211-9cf7-4303-966d-150f091b155a",
+              "status": "SUCCEEDED",
+              "accept_s": 0.085,
+              "start_s": 7.882,
+              "worker_s": 0.0,
+              "e2e_s": 483.458,
+              "error": null,
+              "poll_errors": 10
+            },
+            {
+              "run_id": "0e084b56-8b6c-4d41-9aa4-3163c660c5b5",
+              "status": "SUCCEEDED",
+              "accept_s": 0.118,
+              "start_s": 9.881,
+              "worker_s": 0.0,
+              "e2e_s": 58.997,
+              "error": null,
+              "poll_errors": 22
+            },
+            {
+              "run_id": "5af66076-2777-405c-95a3-1b400a41e077",
+              "status": "SUCCEEDED",
+              "accept_s": 0.088,
+              "start_s": 6.881,
+              "worker_s": 0.0,
+              "e2e_s": 59.885,
+              "error": null,
+              "poll_errors": 23
+            },
+            {
+              "run_id": "e16114dc-a569-47c8-8711-99fe37202785",
+              "status": "SUCCEEDED",
+              "accept_s": 0.09,
+              "start_s": 4.88,
+              "worker_s": 1.0,
+              "e2e_s": 10.983,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "ea957de5-1906-42ae-ae9b-38ef07593698",
+              "status": "SUCCEEDED",
+              "accept_s": 0.12,
+              "start_s": 8.88,
+              "worker_s": 1.0,
+              "e2e_s": 478.268,
+              "error": null,
+              "poll_errors": 94
+            },
+            {
+              "run_id": "8374d105-6dad-46af-b625-49ac4f014d80",
+              "status": "SUCCEEDED",
+              "accept_s": 0.119,
+              "start_s": 5.878,
+              "worker_s": 2.0,
+              "e2e_s": 85.955,
+              "error": null,
+              "poll_errors": 1
+            },
+            {
+              "run_id": "9103e418-b7a8-418d-bd8e-6e16bbea7cc9",
+              "status": "SUCCEEDED",
+              "accept_s": 0.191,
+              "start_s": 9.877,
+              "worker_s": 0.0,
+              "e2e_s": 287.341,
+              "error": null,
+              "poll_errors": 5
+            },
+            {
+              "run_id": "2fdc3aa6-f50f-4dd0-bf92-026edc1c2501",
+              "status": "SUCCEEDED",
+              "accept_s": 0.151,
+              "start_s": 6.877,
+              "worker_s": 1.0,
+              "e2e_s": 476.878,
+              "error": null,
+              "poll_errors": 88
+            },
+            {
+              "run_id": "e88ac42b-80b1-42af-a86f-61dea05183f1",
+              "status": "SUCCEEDED",
+              "accept_s": 0.149,
+              "start_s": 6.876,
+              "worker_s": 1.0,
+              "e2e_s": 259.873,
+              "error": null,
+              "poll_errors": 50
+            },
+            {
+              "run_id": "d06a761d-2207-4f94-97b1-708b2a465b02",
+              "status": "SUCCEEDED",
+              "accept_s": 0.171,
+              "start_s": 7.876,
+              "worker_s": 1.0,
+              "e2e_s": 290.256,
+              "error": null,
+              "poll_errors": 4
+            },
+            {
+              "run_id": "cd1cccd0-7fe7-40ba-8345-76bc3d7c09a4",
+              "status": "SUCCEEDED",
+              "accept_s": 0.2,
+              "start_s": 9.875,
+              "worker_s": 0.0,
+              "e2e_s": 150.864,
+              "error": null,
+              "poll_errors": 32
+            },
+            {
+              "run_id": "cba1d458-d8c2-4679-b771-cb2160cfcbc1",
+              "status": "SUCCEEDED",
+              "accept_s": 0.2,
+              "start_s": 7.874,
+              "worker_s": 0.0,
+              "e2e_s": 287.522,
+              "error": null,
+              "poll_errors": 7
+            },
+            {
+              "run_id": "dd443588-aa9c-4217-b026-9547ebaaf4d8",
+              "status": "SUCCEEDED",
+              "accept_s": 0.208,
+              "start_s": 7.873,
+              "worker_s": 0.0,
+              "e2e_s": 489.774,
+              "error": null,
+              "poll_errors": 20
+            },
+            {
+              "run_id": "75966ec0-82d1-497b-bf21-1406f379add3",
+              "status": "SUCCEEDED",
+              "accept_s": 0.217,
+              "start_s": 7.873,
+              "worker_s": 0.0,
+              "e2e_s": 160.261,
+              "error": null,
+              "poll_errors": 3
+            },
+            {
+              "run_id": "50c5a413-a058-4737-97cd-02a49ea0bb2d",
+              "status": "SUCCEEDED",
+              "accept_s": 0.265,
+              "start_s": 9.872,
+              "worker_s": 0.0,
+              "e2e_s": 481.161,
+              "error": null,
+              "poll_errors": 15
+            },
+            {
+              "run_id": "2c11e8f5-70fe-481b-97a5-93bb86749cd8",
+              "status": "SUCCEEDED",
+              "accept_s": 0.242,
+              "start_s": 7.872,
+              "worker_s": 1.0,
+              "e2e_s": 151.664,
+              "error": null,
+              "poll_errors": 32
+            },
+            {
+              "run_id": "e60a1cb2-d4cf-4507-ab2c-f4ffc092d87c",
+              "status": "SUCCEEDED",
+              "accept_s": 0.278,
+              "start_s": 8.871,
+              "worker_s": 0.0,
+              "e2e_s": 160.057,
+              "error": null,
+              "poll_errors": 2
+            }
+          ],
+          "summary": {
+            "requests": 20,
+            "succeeded": 20,
+            "failed": 0,
+            "poll_errors": 468,
+            "accept_s": {
+              "min": 0.024,
+              "median": 0.15,
+              "p95": 0.265,
+              "max": 0.278
+            },
+            "start_s": {
+              "min": 4.88,
+              "median": 7.875,
+              "p95": 9.877,
+              "max": 9.881
+            },
+            "worker_s": {
+              "min": 0.0,
+              "median": 0.0,
+              "p95": 1.0,
+              "max": 2.0
+            },
+            "e2e_s": {
+              "min": 10.983,
+              "median": 259.443,
+              "p95": 483.458,
+              "max": 489.774
+            },
+            "wall_s": 489.786,
+            "runs_per_min": 2.45
+          }
+        }
+      ],
+      "label": "B 워커 3개, CPU 500m, 메모리 512Mi (OOMKilled 6회)"
+    },
+    "c": {
+      "measured_at": "2026-09-25T04:44:14+00:00",
+      "body": {
+        "ticker": "AAPL.csv",
+        "rule_type": "RSI",
+        "params": {},
+        "start_date": "2020-01-01",
+        "end_date": "2024-12-31"
+      },
+      "rounds": [
+        {
+          "mode": "sequential",
+          "n": 5,
+          "runs": [
+            {
+              "run_id": "0d816878-ef93-4ecd-8737-f4afc7a3bb03",
+              "status": "SUCCEEDED",
+              "accept_s": 0.676,
+              "start_s": 3.227,
+              "worker_s": 0.0,
+              "e2e_s": 5.953,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "3d44571d-74e8-4d12-ae8b-47a0a8ad29a3",
+              "status": "SUCCEEDED",
+              "accept_s": 0.019,
+              "start_s": 2.274,
+              "worker_s": 0.0,
+              "e2e_s": 4.845,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "8a8c743c-cf41-475b-b6aa-1679f8688fa9",
+              "status": "SUCCEEDED",
+              "accept_s": 0.016,
+              "start_s": 2.429,
+              "worker_s": 0.0,
+              "e2e_s": 3.93,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "ac370d9c-bf2f-4a08-b401-a2cd3c1608db",
+              "status": "SUCCEEDED",
+              "accept_s": 0.02,
+              "start_s": 2.499,
+              "worker_s": 0.0,
+              "e2e_s": 4.802,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "ea35946e-313a-44ad-a439-9cab9dc7fdac",
+              "status": "SUCCEEDED",
+              "accept_s": 0.021,
+              "start_s": 2.697,
+              "worker_s": 0.0,
+              "e2e_s": 4.817,
+              "error": null,
+              "poll_errors": 0
+            }
+          ],
+          "summary": {
+            "requests": 5,
+            "succeeded": 5,
+            "failed": 0,
+            "poll_errors": 0,
+            "accept_s": {
+              "min": 0.016,
+              "median": 0.02,
+              "p95": 0.676,
+              "max": 0.676
+            },
+            "start_s": {
+              "min": 2.274,
+              "median": 2.499,
+              "p95": 3.227,
+              "max": 3.227
+            },
+            "worker_s": {
+              "min": 0.0,
+              "median": 0.0,
+              "p95": 0.0,
+              "max": 0.0
+            },
+            "e2e_s": {
+              "min": 3.93,
+              "median": 4.817,
+              "p95": 5.953,
+              "max": 5.953
+            }
+          }
+        },
+        {
+          "mode": "concurrent",
+          "n": 10,
+          "runs": [
+            {
+              "run_id": "62c372ac-594d-475e-a88a-04f9e3269800",
+              "status": "SUCCEEDED",
+              "accept_s": 0.024,
+              "start_s": 4.879,
+              "worker_s": 0.0,
+              "e2e_s": 7.992,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "52d24597-cbe8-4646-915c-18585638d8f1",
+              "status": "SUCCEEDED",
+              "accept_s": 0.021,
+              "start_s": 3.879,
+              "worker_s": 1.0,
+              "e2e_s": 7.97,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "d1db589d-46d6-476c-8d2a-e22948d84fb5",
+              "status": "SUCCEEDED",
+              "accept_s": 0.045,
+              "start_s": 3.878,
+              "worker_s": 1.0,
+              "e2e_s": 9.565,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "9856344e-56a7-4440-b5f2-7f2359d8249a",
+              "status": "SUCCEEDED",
+              "accept_s": 0.048,
+              "start_s": 4.878,
+              "worker_s": 0.0,
+              "e2e_s": 9.657,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "ade90591-0e7f-4fb9-a4e6-31b579607add",
+              "status": "SUCCEEDED",
+              "accept_s": 0.068,
+              "start_s": 4.877,
+              "worker_s": 0.0,
+              "e2e_s": 11.47,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "7c49b631-d70f-4f01-bad4-01516ee093fa",
+              "status": "SUCCEEDED",
+              "accept_s": 0.074,
+              "start_s": 3.877,
+              "worker_s": 1.0,
+              "e2e_s": 11.555,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "4dc40e16-5d3a-403e-b147-97e995182731",
+              "status": "SUCCEEDED",
+              "accept_s": 0.096,
+              "start_s": 4.876,
+              "worker_s": 0.0,
+              "e2e_s": 13.089,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "7d2a9217-f373-4661-b03b-e2e95b811da7",
+              "status": "SUCCEEDED",
+              "accept_s": 0.108,
+              "start_s": 4.875,
+              "worker_s": 0.0,
+              "e2e_s": 13.267,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "1bb31d66-41ae-4628-ba79-91b6320d803d",
+              "status": "SUCCEEDED",
+              "accept_s": 0.129,
+              "start_s": 4.874,
+              "worker_s": 0.0,
+              "e2e_s": 14.755,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "bfc5cc98-3747-4492-b5df-5b014563cb14",
+              "status": "SUCCEEDED",
+              "accept_s": 0.138,
+              "start_s": 4.874,
+              "worker_s": 0.0,
+              "e2e_s": 14.796,
+              "error": null,
+              "poll_errors": 0
+            }
+          ],
+          "summary": {
+            "requests": 10,
+            "succeeded": 10,
+            "failed": 0,
+            "poll_errors": 0,
+            "accept_s": {
+              "min": 0.021,
+              "median": 0.071,
+              "p95": 0.138,
+              "max": 0.138
+            },
+            "start_s": {
+              "min": 3.877,
+              "median": 4.874,
+              "p95": 4.879,
+              "max": 4.879
+            },
+            "worker_s": {
+              "min": 0.0,
+              "median": 0.0,
+              "p95": 1.0,
+              "max": 1.0
+            },
+            "e2e_s": {
+              "min": 7.97,
+              "median": 11.512,
+              "p95": 14.796,
+              "max": 14.796
+            },
+            "wall_s": 14.804,
+            "runs_per_min": 40.53
+          }
+        },
+        {
+          "mode": "concurrent",
+          "n": 20,
+          "runs": [
+            {
+              "run_id": "d23641be-01b8-4dd1-84a8-1e0778f1f451",
+              "status": "SUCCEEDED",
+              "accept_s": 0.024,
+              "start_s": 8.076,
+              "worker_s": 1.0,
+              "e2e_s": 20.823,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "be08d0f5-8d10-405a-b920-aa5fd88af294",
+              "status": "SUCCEEDED",
+              "accept_s": 0.024,
+              "start_s": 6.075,
+              "worker_s": 1.0,
+              "e2e_s": 20.515,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "39a6c88a-0251-401f-9198-2b8c3971d6b2",
+              "status": "SUCCEEDED",
+              "accept_s": 0.045,
+              "start_s": 9.075,
+              "worker_s": 1.0,
+              "e2e_s": 22.054,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "f5775d3c-390b-4fb5-98b6-01e4fd1a2015",
+              "status": "SUCCEEDED",
+              "accept_s": 0.045,
+              "start_s": 6.074,
+              "worker_s": 0.0,
+              "e2e_s": 11.256,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "0ba8346f-939e-488b-82b1-431805367b0e",
+              "status": "SUCCEEDED",
+              "accept_s": 0.073,
+              "start_s": 8.074,
+              "worker_s": 1.0,
+              "e2e_s": 22.553,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "d71480f7-3e62-49c8-87b5-47678096d8f3",
+              "status": "SUCCEEDED",
+              "accept_s": 0.072,
+              "start_s": 9.073,
+              "worker_s": 0.0,
+              "e2e_s": 23.957,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "ac376505-114c-4335-9986-6227808d2fa1",
+              "status": "SUCCEEDED",
+              "accept_s": 0.111,
+              "start_s": 8.073,
+              "worker_s": 1.0,
+              "e2e_s": 27.431,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "416b0cff-9626-43ff-88ee-001270a8be04",
+              "status": "SUCCEEDED",
+              "accept_s": 0.103,
+              "start_s": 8.072,
+              "worker_s": 1.0,
+              "e2e_s": 25.738,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "0618d069-2d09-4200-b9df-3cbd9c6e037f",
+              "status": "SUCCEEDED",
+              "accept_s": 0.13,
+              "start_s": 9.072,
+              "worker_s": 1.0,
+              "e2e_s": 27.42,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "5078c90c-e08e-4d5a-9094-4c721b7056d4",
+              "status": "SUCCEEDED",
+              "accept_s": 0.167,
+              "start_s": 7.071,
+              "worker_s": 0.0,
+              "e2e_s": 11.443,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "c56d3ad1-e913-4ec3-9746-c149bb26a716",
+              "status": "SUCCEEDED",
+              "accept_s": 0.135,
+              "start_s": 10.07,
+              "worker_s": 0.0,
+              "e2e_s": 24.191,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "3768a030-eb0e-4f6d-b1e9-437754fbec6c",
+              "status": "SUCCEEDED",
+              "accept_s": 0.161,
+              "start_s": 10.07,
+              "worker_s": 0.0,
+              "e2e_s": 25.795,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "9574d340-6601-4210-8271-abb5b3de32a8",
+              "status": "SUCCEEDED",
+              "accept_s": 0.198,
+              "start_s": 10.07,
+              "worker_s": 1.0,
+              "e2e_s": 13.547,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "0030eaa6-fcbd-47be-9734-022a1587981c",
+              "status": "SUCCEEDED",
+              "accept_s": 0.2,
+              "start_s": 8.069,
+              "worker_s": 1.0,
+              "e2e_s": 13.636,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "8309a265-f4f8-499e-bb70-1c86b98cc76f",
+              "status": "SUCCEEDED",
+              "accept_s": 0.221,
+              "start_s": 10.068,
+              "worker_s": 0.0,
+              "e2e_s": 17.111,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "dc792638-2294-4120-9cec-fccd97ef6248",
+              "status": "SUCCEEDED",
+              "accept_s": 0.223,
+              "start_s": 9.068,
+              "worker_s": 1.0,
+              "e2e_s": 15.347,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "41fd1612-e42a-4a88-81a6-3fc96adf1499",
+              "status": "SUCCEEDED",
+              "accept_s": 0.241,
+              "start_s": 11.067,
+              "worker_s": 1.0,
+              "e2e_s": 18.889,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "f763d35e-df8c-4f97-bae2-07828a1eb8b0",
+              "status": "SUCCEEDED",
+              "accept_s": 0.267,
+              "start_s": 9.065,
+              "worker_s": 0.0,
+              "e2e_s": 19.119,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "ec3f9ebe-1903-4b9a-b2d9-8ec2326707b6",
+              "status": "SUCCEEDED",
+              "accept_s": 0.239,
+              "start_s": 10.065,
+              "worker_s": 0.0,
+              "e2e_s": 15.539,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "ab239db5-5a5f-4830-b94e-698372559468",
+              "status": "SUCCEEDED",
+              "accept_s": 0.262,
+              "start_s": 10.064,
+              "worker_s": 1.0,
+              "e2e_s": 17.426,
+              "error": null,
+              "poll_errors": 0
+            }
+          ],
+          "summary": {
+            "requests": 20,
+            "succeeded": 20,
+            "failed": 0,
+            "poll_errors": 0,
+            "accept_s": {
+              "min": 0.024,
+              "median": 0.148,
+              "p95": 0.262,
+              "max": 0.267
+            },
+            "start_s": {
+              "min": 6.074,
+              "median": 9.07,
+              "p95": 10.07,
+              "max": 11.067
+            },
+            "worker_s": {
+              "min": 0.0,
+              "median": 1.0,
+              "p95": 1.0,
+              "max": 1.0
+            },
+            "e2e_s": {
+              "min": 11.256,
+              "median": 19.817,
+              "p95": 27.42,
+              "max": 27.431
+            },
+            "wall_s": 27.44,
+            "runs_per_min": 43.73
+          }
+        }
+      ],
+      "label": "C 워커 2개, CPU 1000m, 메모리 1Gi (최대 메모리 약 397MiB)"
+    },
+    "d": {
+      "measured_at": "2026-09-25T04:46:40+00:00",
+      "body": {
+        "ticker": "AAPL.csv",
+        "rule_type": "RSI",
+        "params": {},
+        "start_date": "2020-01-01",
+        "end_date": "2024-12-31"
+      },
+      "rounds": [
+        {
+          "mode": "sequential",
+          "n": 5,
+          "runs": [
+            {
+              "run_id": "98c99c4e-5908-4967-911b-cd249b0f59f1",
+              "status": "SUCCEEDED",
+              "accept_s": 0.967,
+              "start_s": 3.6,
+              "worker_s": 0.0,
+              "e2e_s": 6.467,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "150af85b-a858-4053-a723-412a3960fc97",
+              "status": "SUCCEEDED",
+              "accept_s": 0.018,
+              "start_s": 2.132,
+              "worker_s": 0.0,
+              "e2e_s": 6.406,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "d0517119-da00-4e57-a58d-9a6961852d21",
+              "status": "SUCCEEDED",
+              "accept_s": 0.019,
+              "start_s": 2.726,
+              "worker_s": 0.0,
+              "e2e_s": 5.416,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "692a9842-1b77-4a3c-b251-5b4e65998c31",
+              "status": "SUCCEEDED",
+              "accept_s": 0.016,
+              "start_s": 2.31,
+              "worker_s": 0.0,
+              "e2e_s": 5.483,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "f16b2f22-3c11-432a-9505-0705b440598b",
+              "status": "SUCCEEDED",
+              "accept_s": 0.022,
+              "start_s": 0.826,
+              "worker_s": 0.0,
+              "e2e_s": 4.513,
+              "error": null,
+              "poll_errors": 0
+            }
+          ],
+          "summary": {
+            "requests": 5,
+            "succeeded": 5,
+            "failed": 0,
+            "poll_errors": 0,
+            "accept_s": {
+              "min": 0.016,
+              "median": 0.019,
+              "p95": 0.967,
+              "max": 0.967
+            },
+            "start_s": {
+              "min": 0.826,
+              "median": 2.31,
+              "p95": 3.6,
+              "max": 3.6
+            },
+            "worker_s": {
+              "min": 0.0,
+              "median": 0.0,
+              "p95": 0.0,
+              "max": 0.0
+            },
+            "e2e_s": {
+              "min": 4.513,
+              "median": 5.483,
+              "p95": 6.467,
+              "max": 6.467
+            }
+          }
+        },
+        {
+          "mode": "concurrent",
+          "n": 10,
+          "runs": [
+            {
+              "run_id": "bd71279b-e738-44a6-aa9c-861d6b9169f3",
+              "status": "SUCCEEDED",
+              "accept_s": 0.057,
+              "start_s": 4.313,
+              "worker_s": 0.0,
+              "e2e_s": 9.291,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "65ffc614-faa1-429e-bacc-74f2d1a37f7a",
+              "status": "SUCCEEDED",
+              "accept_s": 0.071,
+              "start_s": 4.313,
+              "worker_s": 0.0,
+              "e2e_s": 9.569,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "6837c136-1611-4b97-9508-42a9cf425fa7",
+              "status": "SUCCEEDED",
+              "accept_s": 0.076,
+              "start_s": 4.312,
+              "worker_s": 1.0,
+              "e2e_s": 12.577,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "7d97e5cd-23c2-434c-86b1-c69d08f89a40",
+              "status": "SUCCEEDED",
+              "accept_s": 0.098,
+              "start_s": 4.312,
+              "worker_s": 0.0,
+              "e2e_s": 13.365,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "887ca91f-28eb-4832-a909-75ca3232efbd",
+              "status": "SUCCEEDED",
+              "accept_s": 0.106,
+              "start_s": 4.311,
+              "worker_s": 1.0,
+              "e2e_s": 16.683,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "1bb73566-17e9-4e7f-8b03-60bec086add1",
+              "status": "SUCCEEDED",
+              "accept_s": 0.12,
+              "start_s": 4.31,
+              "worker_s": 1.0,
+              "e2e_s": 16.265,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "25b64bbf-1801-4ebb-bf3e-4a82ad29b56f",
+              "status": "SUCCEEDED",
+              "accept_s": 0.143,
+              "start_s": 4.31,
+              "worker_s": 1.0,
+              "e2e_s": 19.276,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "dad19233-5a72-4be2-840f-0b5402565a43",
+              "status": "SUCCEEDED",
+              "accept_s": 0.156,
+              "start_s": 4.309,
+              "worker_s": 1.0,
+              "e2e_s": 19.866,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "0e0db3ab-94b5-4235-9d7e-0bb9ee4ba067",
+              "status": "SUCCEEDED",
+              "accept_s": 0.171,
+              "start_s": 4.308,
+              "worker_s": 1.0,
+              "e2e_s": 22.561,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "a4aecf93-c334-4e59-9a49-8827ee814ec9",
+              "status": "SUCCEEDED",
+              "accept_s": 0.185,
+              "start_s": 4.307,
+              "worker_s": 1.0,
+              "e2e_s": 23.085,
+              "error": null,
+              "poll_errors": 0
+            }
+          ],
+          "summary": {
+            "requests": 10,
+            "succeeded": 10,
+            "failed": 0,
+            "poll_errors": 0,
+            "accept_s": {
+              "min": 0.057,
+              "median": 0.113,
+              "p95": 0.185,
+              "max": 0.185
+            },
+            "start_s": {
+              "min": 4.307,
+              "median": 4.31,
+              "p95": 4.313,
+              "max": 4.313
+            },
+            "worker_s": {
+              "min": 0.0,
+              "median": 1.0,
+              "p95": 1.0,
+              "max": 1.0
+            },
+            "e2e_s": {
+              "min": 9.291,
+              "median": 16.474,
+              "p95": 23.085,
+              "max": 23.085
+            },
+            "wall_s": 23.094,
+            "runs_per_min": 25.98
+          }
+        },
+        {
+          "mode": "concurrent",
+          "n": 20,
+          "runs": [
+            {
+              "run_id": "02e67d56-75e7-4691-8eba-246de58ce0bb",
+              "status": "SUCCEEDED",
+              "accept_s": 0.025,
+              "start_s": 7.219,
+              "worker_s": 0.0,
+              "e2e_s": 14.872,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "2a9158fd-794e-4012-973a-c3abfa85e652",
+              "status": "SUCCEEDED",
+              "accept_s": 0.107,
+              "start_s": 7.219,
+              "worker_s": 0.0,
+              "e2e_s": 20.06,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "9f92aa35-2a95-42e3-b39d-43eb7a59231e",
+              "status": "SUCCEEDED",
+              "accept_s": 0.072,
+              "start_s": 9.218,
+              "worker_s": 0.0,
+              "e2e_s": 17.067,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "039ea757-6242-4c17-8f24-b6be100d3169",
+              "status": "SUCCEEDED",
+              "accept_s": 0.024,
+              "start_s": 8.218,
+              "worker_s": 0.0,
+              "e2e_s": 13.566,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "9219ddcb-0da5-41be-ae51-5425ad68a9f8",
+              "status": "SUCCEEDED",
+              "accept_s": 0.117,
+              "start_s": 7.218,
+              "worker_s": 0.0,
+              "e2e_s": 26.259,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "8afec211-018a-420b-b76f-05c95040f24a",
+              "status": "SUCCEEDED",
+              "accept_s": 0.071,
+              "start_s": 7.217,
+              "worker_s": 1.0,
+              "e2e_s": 18.365,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "b42cbc6f-cb75-47f7-8c27-6118e5b703f7",
+              "status": "SUCCEEDED",
+              "accept_s": 0.094,
+              "start_s": 5.217,
+              "worker_s": 0.0,
+              "e2e_s": 11.372,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "1afc08a7-2d55-4e17-ba42-2926525f783d",
+              "status": "SUCCEEDED",
+              "accept_s": 0.168,
+              "start_s": 7.215,
+              "worker_s": 1.0,
+              "e2e_s": 21.279,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "baf8924e-ce24-409c-8afb-20a8ec79deff",
+              "status": "SUCCEEDED",
+              "accept_s": 0.127,
+              "start_s": 9.215,
+              "worker_s": 1.0,
+              "e2e_s": 22.877,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "0bb7e33e-40c4-462a-89e0-f2392820238e",
+              "status": "SUCCEEDED",
+              "accept_s": 0.209,
+              "start_s": 9.214,
+              "worker_s": 0.0,
+              "e2e_s": 39.155,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "576eb65f-89a6-469a-b73d-79a12307cc6f",
+              "status": "SUCCEEDED",
+              "accept_s": 0.178,
+              "start_s": 7.214,
+              "worker_s": 1.0,
+              "e2e_s": 31.865,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "6392bab8-0a2c-4420-b780-6e4055b453d9",
+              "status": "SUCCEEDED",
+              "accept_s": 0.194,
+              "start_s": 8.213,
+              "worker_s": 0.0,
+              "e2e_s": 24.166,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "4dcec1da-a8d1-4367-9f3c-afb2d3c4cf31",
+              "status": "SUCCEEDED",
+              "accept_s": 0.213,
+              "start_s": 8.212,
+              "worker_s": 1.0,
+              "e2e_s": 27.067,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "dae97345-4023-4227-9b45-8792e39785e5",
+              "status": "SUCCEEDED",
+              "accept_s": 0.232,
+              "start_s": 11.211,
+              "worker_s": 0.0,
+              "e2e_s": 29.064,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "5ef7a42f-cb9e-4932-8084-136d1aa021ad",
+              "status": "SUCCEEDED",
+              "accept_s": 0.241,
+              "start_s": 8.21,
+              "worker_s": 1.0,
+              "e2e_s": 38.425,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "f243c3f1-7d7f-422c-a1a0-b49aae0aa9f8",
+              "status": "SUCCEEDED",
+              "accept_s": 0.267,
+              "start_s": 8.21,
+              "worker_s": 0.0,
+              "e2e_s": 33.283,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "5b01a59d-4828-478d-b7b8-c9732a680ce3",
+              "status": "SUCCEEDED",
+              "accept_s": 0.298,
+              "start_s": 8.209,
+              "worker_s": 0.0,
+              "e2e_s": 37.042,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "be598a71-5050-464a-96e6-0706dd0ce45d",
+              "status": "SUCCEEDED",
+              "accept_s": 0.262,
+              "start_s": 9.209,
+              "worker_s": 1.0,
+              "e2e_s": 30.45,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "447a5635-41e0-4263-b45e-d804771fb98a",
+              "status": "SUCCEEDED",
+              "accept_s": 0.304,
+              "start_s": 11.208,
+              "worker_s": 0.0,
+              "e2e_s": 35.172,
+              "error": null,
+              "poll_errors": 0
+            },
+            {
+              "run_id": "d08d19ba-cf0a-4c7e-a8a4-4315e9f5731b",
+              "status": "SUCCEEDED",
+              "accept_s": 0.321,
+              "start_s": 8.208,
+              "worker_s": 1.0,
+              "e2e_s": 36.167,
+              "error": null,
+              "poll_errors": 0
+            }
+          ],
+          "summary": {
+            "requests": 20,
+            "succeeded": 20,
+            "failed": 0,
+            "poll_errors": 0,
+            "accept_s": {
+              "min": 0.024,
+              "median": 0.186,
+              "p95": 0.304,
+              "max": 0.321
+            },
+            "start_s": {
+              "min": 5.217,
+              "median": 8.21,
+              "p95": 11.208,
+              "max": 11.211
+            },
+            "worker_s": {
+              "min": 0.0,
+              "median": 0.0,
+              "p95": 1.0,
+              "max": 1.0
+            },
+            "e2e_s": {
+              "min": 11.372,
+              "median": 26.663,
+              "p95": 38.425,
+              "max": 39.155
+            },
+            "wall_s": 39.165,
+            "runs_per_min": 30.64
+          }
+        }
+      ],
+      "label": "D 워커 2개, CPU 500m, 메모리 512Mi (최대 메모리 약 385MiB)"
+    }
+  }
+}

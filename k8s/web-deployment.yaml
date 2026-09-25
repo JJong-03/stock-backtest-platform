@@ -26,6 +26,9 @@ spec:
           image: ghcr.io/jjong-03/stock-backtest:bb856d9 # 웹 애플리케이션 컨테이너 이미지
 
           imagePullPolicy: IfNotPresent
+          # gunicorn 워커 2개: 결과 조회(/status)가 차트를 그리는 동안에도 다른 요청과 헬스 체크를 받게 한다.
+          # 3개는 메모리 한도를 넘어 OOMKilled 됐다 (docs/measurements/2026-09-25-local-kind-load.md).
+          command: ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "app:app"]
           ports:
             - name: http
               containerPort: 5000
@@ -61,5 +64,5 @@ spec:
               cpu: 100m     # 0.1 CPU (100 millicores)
               memory: 256Mi
             limits:         # 이 이상 사용시 컨테이너가 제한됨 (OOMKill 방지)
-              cpu: 500m
-              memory: 512Mi
+              cpu: 1000m    # 500m에서는 차트 렌더링이 CPU 한도에 막혀 워커를 늘려도 처리량이 거의 그대로였다
+              memory: 1Gi   # 워커 2개 측정 최대 약 397MiB (로컬 kind 측정, 2026-09-25)
