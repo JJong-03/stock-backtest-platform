@@ -1,5 +1,7 @@
 # CLAUDE.md -- Stock Backtesting Platform
 
+> 이 파일은 개발 기간(2026년 2월 ~ 3월)에 AI 코딩 도구가 따르던 규칙입니다. 아래 Phase 표시와 9절 체크리스트는 개발 중에 쓰던 그대로 두었습니다. 마감 뒤의 상태와 검증 기록은 [README](README.md)를 기준으로 합니다.
+
 ## 1. Project Overview
 
 | 항목 | 내용 |
@@ -23,11 +25,11 @@
 ## 2. Project Status
 
 Active Phase: Phase 5
-- Phase 1 ✅ Completed
-- Phase 2 ✅ Completed
-- Phase 3 ✅ Completed
-- Phase 4 ✅ Completed
-- Phase 5 🚧 In Progress
+- Phase 1 Completed
+- Phase 2 Completed
+- Phase 3 Completed
+- Phase 4 Completed
+- Phase 5 In Progress
 
 ### Phase 2 공통 규격 (K8s)
 - **namespace**: stock-backtest
@@ -89,27 +91,27 @@ Worker는 아래 환경변수로만 입력을 받는다 (파일 I/O 금지):
 
 | Phase | Status | Scope |
 |---|---|---|
-| Day 1-2 | ✅ Completed | Core engine verification, rules library, technical indicators, MVP pipeline |
-| Day 3 | ✅ Completed | Flask app structure (MVC), immutable engine integration, strategy persistence (SQLite + SQLAlchemy), core web routes & API contracts (`/run_backtest`, `/api/strategies`, `/health`) |
-| Day 3.9 | ✅ Completed | Advanced UI: VectorBT-style 5-tab dashboard, extended JSON schemas, adapter-layer metrics, portfolio visualization refactor (separate Orders & Trade PnL charts), cumulative return chart |
-| Phase 1 | ✅ Completed | Containerization & Local Parity (Docker, Compose, .env.example, healthcheck) |
-| Phase 2 | ✅ Completed | Kubernetes Runtime + Data Layer (Namespace, Deployment, MySQL StatefulSet, ConfigMap/Secret, Ingress) |
-| Phase 3 | ✅ Completed | Web → K8s Job Orchestration (worker entrypoint, job launcher, status polling, DB persistence) |
-| Phase 4 | ✅ Completed | Automation & GitOps (CI via GitHub Actions, CD via Argo CD) |
-| Phase 5 | 🚧 In Progress | Observability verification (Rule 8) & Demo Assets |
-| Phase 6 | 📋 Planned | Documentation & Retrospective (architecture diagrams, ops guide, final polish) |
+| Day 1-2 | Completed | Core engine verification, rules library, technical indicators, MVP pipeline |
+| Day 3 | Completed | Flask app structure (MVC), immutable engine integration, strategy persistence (SQLite + SQLAlchemy), core web routes & API contracts (`/run_backtest`, `/api/strategies`, `/health`) |
+| Day 3.9 | Completed | Advanced UI: VectorBT-style 5-tab dashboard, extended JSON schemas, adapter-layer metrics, portfolio visualization refactor (separate Orders & Trade PnL charts), cumulative return chart |
+| Phase 1 | Completed | Containerization & Local Parity (Docker, Compose, .env.example, healthcheck) |
+| Phase 2 | Completed | Kubernetes Runtime + Data Layer (Namespace, Deployment, MySQL StatefulSet, ConfigMap/Secret, Ingress) |
+| Phase 3 | Completed | Web → K8s Job Orchestration (worker entrypoint, job launcher, status polling, DB persistence) |
+| Phase 4 | Completed | Automation & GitOps (CI via GitHub Actions, CD via Argo CD) |
+| Phase 5 | In Progress | Observability verification (Rule 8) & Demo Assets |
+| Phase 6 | Planned | Documentation & Retrospective (architecture diagrams, ops guide, final polish) |
 
 **Implemented APIs:**
 
 | Method | Path | Status |
 |---|---|---|
-| GET | / | ✅ Implemented |
-| POST | /run_backtest | ✅ Implemented |
-| GET | /api/strategies | ✅ Implemented |
-| POST | /api/strategies | ✅ Implemented |
-| DELETE | /api/strategies/<id> | ✅ Implemented |
-| GET | /health | ✅ Implemented |
-| GET | /status/<run_id> | ✅ Implemented  |
+| GET | / | Implemented |
+| POST | /run_backtest | Implemented |
+| GET | /api/strategies | Implemented |
+| POST | /api/strategies | Implemented |
+| DELETE | /api/strategies/<id> | Implemented |
+| GET | /health | Implemented |
+| GET | /status/<run_id> | Implemented  |
 ---
 
 ## 3. Tech Stack
@@ -142,14 +144,14 @@ Phase 3에서 Web↔Worker 분리가 도입되면 아래 책임 분리를 따른
 
 | Responsibility | Web (Flask Deployment) | Worker (K8s Job) |
 |---|---|---|
-| Request validation, input sanitization | ✅ | — |
-| `run_id` issuance (UUID4) | ✅ | — |
-| K8s Job 생성 (K8s Python client) | ✅ | — |
-| Backtest engine 실행 | — | ✅ |
-| Adapter-derived outputs (charts, metrics) | — | ✅ |
-| Result persistence → MySQL | — | ✅ |
-| Status/result 조회 (`/status/<run_id>`) | ✅ | — |
-| Response rendering (JSON/HTML) | ✅ | — |
+| Request validation, input sanitization | Yes | — |
+| `run_id` issuance (UUID4) | Yes | — |
+| K8s Job 생성 (K8s Python client) | Yes | — |
+| Backtest engine 실행 | — | Yes |
+| Adapter-derived outputs (charts, metrics) | — | Yes |
+| Result persistence → MySQL | — | Yes |
+| Status/result 조회 (`/status/<run_id>`) | Yes | — |
+| Response rendering (JSON/HTML) | Yes | — |
 
 **Invariants:**
 - **Web은 stateless** (Rule 4). 로컬 파일 I/O 없음. 수평 확장에 코드 변경 불필요.
@@ -622,16 +624,16 @@ The Controller/Adapter layer MAY compute **derived metrics and visualizations**
 from engine outputs WITHOUT modifying engine trading logic.
 
 **Allowed in Adapter:**
-- ✅ Deriving `drawdown_curve` from `equity_curve` (peak-to-trough)
-- ✅ Computing `portfolio_curve` from `equity_curve` + `trades`
-- ✅ Computing `win_rate`, `profit_factor`, `exposure_pct` from `trades`
-- ✅ Generating PNG charts via Matplotlib
-- ✅ Formatting timestamps to ISO8601
+- Deriving `drawdown_curve` from `equity_curve` (peak-to-trough)
+- Computing `portfolio_curve` from `equity_curve` + `trades`
+- Computing `win_rate`, `profit_factor`, `exposure_pct` from `trades`
+- Generating PNG charts via Matplotlib
+- Formatting timestamps to ISO8601
 
 **Still Forbidden:**
-- ❌ Modifying signal generation logic
-- ❌ Changing trade execution rules
-- ❌ Altering engine-internal formulas (Sharpe, returns)
+- Modifying signal generation logic
+- Changing trade execution rules
+- Altering engine-internal formulas (Sharpe, returns)
 
 **Important Clarification:**
 Re-formatting or re-scaling engine-provided metrics is allowed;
@@ -928,10 +930,10 @@ stock_backtest/
 |-- requirements.txt                   # Python 의존성
 |-- requirements-dev.txt               # 개발 의존성 (gunicorn)
 |-- .gitignore                         # Git 제외 규칙
-|-- app.py                             # ✅ Flask 애플리케이션 진입점 (Controller)
+|-- app.py                             # Flask 애플리케이션 진입점 (Controller)
 |-- worker.py                          # [Phase 3] K8s Job Worker 진입점
-|-- extensions.py                      # ✅ SQLAlchemy 인스턴스 (순환 import 방지)
-|-- models.py                          # ✅ Strategy ORM 모델
+|-- extensions.py                      # SQLAlchemy 인스턴스 (순환 import 방지)
+|-- models.py                          # Strategy ORM 모델
 |-- Dockerfile                         # [Phase 1] Multi-stage Docker 빌드
 |-- docker-compose.yml                 # [Phase 1] 로컬 개발: app + MySQL
 |-- .env.example                       # [Phase 1] 환경변수 템플릿
@@ -953,7 +955,7 @@ stock_backtest/
 |-- rules/                             # 트레이딩 룰 라이브러리
 |   |-- __init__.py
 |   |-- base_rule.py                   # BaseRule, Signal, RuleMetadata, CompositeRule
-|   |-- technical_rules.py             # ✅ Implemented: RSI, MACD, RSI+MACD, MA Cross, BB, Volume, Trend, ATR
+|   |-- technical_rules.py             # Implemented: RSI, MACD, RSI+MACD, MA Cross, BB, Volume, Trend, ATR
 |   |-- paper_rules.py                 # Momentum, Value, MeanReversion, Breakout
 |   |-- rule_validator.py              # RuleValidator, SignalAnalyzer
 |   +-- optimizer.py                   # ParameterOptimizer (Grid Search)
@@ -971,16 +973,16 @@ stock_backtest/
 |   |-- verify_mvp.py                  # E2E 파이프라인 검증 스크립트
 |   +-- demo.sh                        # [Phase 5] 고정 시나리오 E2E 데모 스크립트
 |
-|-- adapters/                          # ✅ Adapter Layer (post-processing, Rule 1 compliant)
+|-- adapters/                          # Adapter Layer (post-processing, Rule 1 compliant)
 |   |-- __init__.py
 |   +-- adapter.py                     # build_equity_curve, derive_drawdown_curve, normalize_trades, render_*_chart
 |
-|-- tests/                             # ✅ Test Suite
+|-- tests/                             # Test Suite
 |   |-- __init__.py
 |   +-- test_day39.py                  # 83 tests: adapter, Flask endpoints, schema, figure leak prevention
 |
 |-- templates/
-|   +-- index.html                     # ✅ Bootstrap 5 Dark Mode 대시보드
+|   +-- index.html                     # Bootstrap 5 Dark Mode 대시보드
 |
 |-- k8s/                               # [Phase 2-3] Kubernetes 매니페스트
 |   |-- namespace.yaml
@@ -1013,32 +1015,32 @@ stock_backtest/
 **Note:** Roadmap is high-level only. Detailed task lists belong in `docs/RETROSPECTIVE.md` or Issues.
 Phase-based plan with acceptance criteria is in **Section 8**.
 
-### Day 3 -- Flask Web Dashboard (✅ Completed — Pre-Phase Planning)
+### Day 3 -- Flask Web Dashboard (Completed — Pre-Phase Planning)
 
 | Task | Status |
 |---|---|
-| `app.py` 생성 (`GET /`, `POST /run_backtest`, `GET /health`) | ✅ Done |
-| HTML 템플릿 (`index.html` — Bootstrap 5 Dark Mode, AJAX) | ✅ Done |
-| Rule-Engine 어댑터 (`_build_strategy` wrapper 패턴) | ✅ Done |
-| 차트 렌더링 (Matplotlib Agg → Base64 `<img>`) | ✅ Done |
-| Strategy Persistence (`extensions.py`, `models.py`, REST API) | ✅ Done |
-| Date range filtering (explicit `pd.to_datetime` + `tz_localize`) | ✅ Done |
-| RSI + MACD Combined Strategy (`RsiMacdRule`) | ✅ Done |
-| Security hardening (path traversal, memory leak, production config) | ✅ Done |
+| `app.py` 생성 (`GET /`, `POST /run_backtest`, `GET /health`) | Done |
+| HTML 템플릿 (`index.html` — Bootstrap 5 Dark Mode, AJAX) | Done |
+| Rule-Engine 어댑터 (`_build_strategy` wrapper 패턴) | Done |
+| 차트 렌더링 (Matplotlib Agg → Base64 `<img>`) | Done |
+| Strategy Persistence (`extensions.py`, `models.py`, REST API) | Done |
+| Date range filtering (explicit `pd.to_datetime` + `tz_localize`) | Done |
+| RSI + MACD Combined Strategy (`RsiMacdRule`) | Done |
+| Security hardening (path traversal, memory leak, production config) | Done |
 
-### Day 3.9 -- Advanced UI Features (✅ Completed — Pre-Phase Planning)
+### Day 3.9 -- Advanced UI Features (Completed — Pre-Phase Planning)
 
 | Task | Status | Time |
 |---|---|---|
-| 5-tab interface (Stats, Equity, Drawdown, Portfolio, Trades) | ✅ Done | 1.5h |
-| Extended JSON response schema (equity_curve, drawdown_curve, trades) | ✅ Done | 1h |
-| Enhanced metrics calculation (adapter layer) | ✅ Done | 1h |
-| Drawdown chart derivation & rendering | ✅ Done | 1h |
-| Portfolio visualization refactor (separate Orders & Trade PnL charts) | ✅ Done | 1h |
-| Cumulative return chart | ✅ Done | 30min |
-| Trading fees + slippage UI controls | ✅ Done | 30min |
-| Typography improvements (14px min, monospace numbers) | ✅ Done | 30min |
-| Bloomberg Terminal aesthetic refinement | ✅ Done | 1h |
+| 5-tab interface (Stats, Equity, Drawdown, Portfolio, Trades) | Done | 1.5h |
+| Extended JSON response schema (equity_curve, drawdown_curve, trades) | Done | 1h |
+| Enhanced metrics calculation (adapter layer) | Done | 1h |
+| Drawdown chart derivation & rendering | Done | 1h |
+| Portfolio visualization refactor (separate Orders & Trade PnL charts) | Done | 1h |
+| Cumulative return chart | Done | 30min |
+| Trading fees + slippage UI controls | Done | 30min |
+| Typography improvements (14px min, monospace numbers) | Done | 30min |
+| Bloomberg Terminal aesthetic refinement | Done | 1h |
 
 **Day 3.9 Log:** Completed UI polish, cumulative return chart, and portfolio visualization refactor (split Orders + Trade PnL into separate full-width charts with fixed-position legends, removed deprecated combined chart).
 

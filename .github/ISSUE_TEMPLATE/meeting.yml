@@ -1,6 +1,6 @@
-name: 📝 회의록
+name: 회의록
 description: 팀 회의 기록
-labels: ["📝 meeting"]
+labels: ["meeting"]
 body:
   - type: dropdown
     id: team

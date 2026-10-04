@@ -92,13 +92,13 @@ Allowed:
 
 All commands must run from repository root. Do not `cd` into subdirs.
 
-✅ Correct
+Correct
 - `pytest -q`
 - `python -m flask run`
 - `python scripts/verify_mvp.py`
 - `docker build -t stock-backtest .`
 
-❌ Wrong
+Wrong
 - `cd scripts && python verify_mvp.py`
 
 ---

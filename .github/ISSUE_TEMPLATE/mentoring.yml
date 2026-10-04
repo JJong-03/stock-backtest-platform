@@ -1,6 +1,6 @@
-name: 🎓 멘토링
+name: 멘토링
 description: 멘토링 세션 기록
-labels: ["🎓 mentoring"]
+labels: ["mentoring"]
 body:
   - type: dropdown
     id: team
