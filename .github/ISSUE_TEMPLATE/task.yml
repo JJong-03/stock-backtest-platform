@@ -1,6 +1,6 @@
-name: 📋 주차별 일감
+name: 주차별 일감
 description: 주차별 학습/실습 일감 등록
-labels: ["📋 task"]
+labels: ["task"]
 body:
   - type: dropdown
     id: team

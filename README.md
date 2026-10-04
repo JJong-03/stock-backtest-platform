@@ -57,6 +57,19 @@
 
 ---
 
+## 대표 문제 해결: 느린 곳은 계산이 아니라 결과 조회였다
+
+로컬 kind 클러스터(노드 1개)에서 동시 요청 20건을 보냈을 때, 계산 Job은 1초 안팎에 끝났지만 처리량은 분당 27.7건에 머물렀습니다.
+
+1. **원인:** 결과를 조회할 때마다 차트 5개를 다시 그려, 성공 결과 조회 한 건이 1.6~1.9초씩 하나뿐인 웹 워커를 붙잡았습니다. 측정 스크립트가 0.25초마다 조회했을 때는 `/health`가 제때 응답하지 못해 liveness probe가 웹을 재시작하기도 했습니다.
+2. **시도와 실패:** 웹 워커를 3개로 늘리자 메모리 한도 512Mi를 넘어 OOMKilled로 6번 재시작했습니다. 2개는 한도 안에 들어갔지만 처리량은 분당 30.6건으로 크게 늘지 않았습니다.
+3. **조치:** 웹 워커 2개에 CPU 한도 1코어, 메모리 한도 1Gi를 주자 처리량이 분당 43.7건(+58%)으로 늘고, 20건이 모두 끝나는 시간이 43.3초에서 27.4초로 줄었습니다. 메모리는 최대 약 397MiB로 512Mi 안이었으니 차이를 만든 것은 CPU 한도였습니다. 이 구성을 `k8s/web-deployment.yaml`에 반영했습니다([PR #4](https://github.com/JJong-03/stock-backtest-platform/pull/4)).
+4. **남은 과제:** 조회마다 차트를 다시 그리는 근본 원인은 그대로입니다. 차트를 DB에 저장하는 것은 이 저장소의 derive-on-demand 계약과 맞지 않아, 웹 Pod 메모리 캐시를 다음 과제로 남겼습니다.
+
+구성마다 한 번씩 잰 로컬 측정이며 운영 수치가 아닙니다. 조건과 원자료는 [측정 기록](docs/measurements/2026-09-25-local-kind-load.md)에 있습니다.
+
+---
+
 ## Architecture Overview
 
 ![Architecture Overview](https://raw.githubusercontent.com/wiki/msp-architect-2026/kim-jongwon/images/10_architecture_overview.png)

@@ -28,7 +28,7 @@ spec:
             - secretRef:
                 name: web-secret
           env:
-            # ⚠️ 이 파일은 참조용 템플릿입니다.
+            # 주의: 이 파일은 참조용 템플릿입니다.
             # 실제 Job은 K8sJobLauncher.launch()가 동적으로 env를 오버라이드합니다.
             # 이 파일을 직접 kubectl apply 하지 마십시오.
             - name: RUN_ID

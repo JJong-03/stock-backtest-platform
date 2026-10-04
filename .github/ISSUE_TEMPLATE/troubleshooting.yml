@@ -1,6 +1,6 @@
-name: 🔧 트러블슈팅
+name: 트러블슈팅
 description: 기술 이슈 보고 및 해결 기록
-labels: ["🔧 troubleshooting"]
+labels: ["troubleshooting"]
 body:
   - type: dropdown
     id: team
