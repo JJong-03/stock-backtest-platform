@@ -1,0 +1,3302 @@
+{
+  "started_at": "2026-10-08T12:06:09+00:00",
+  "environment": {
+    "source_commit": "3bcac46e3d2e631788bf381942ca9f5495aaf8f7",
+    "image": "sha256:5d922749af8390bb03b626f128f8d74e0f33314bce36d3efee2f075ca235090e",
+    "kind": "kind v0.27.0 go1.23.6 linux/amd64",
+    "docker": "\"29.1.3\" 12 8266158080",
+    "kernel": "6.6.87.1-microsoft-standard-WSL2",
+    "nodes": {
+      "architecture": "amd64",
+      "containerRuntimeVersion": "containerd://2.0.3",
+      "kernelVersion": "6.6.87.1-microsoft-standard-WSL2",
+      "kubeProxyVersion": "v1.32.2",
+      "kubeletVersion": "v1.32.2",
+      "operatingSystem": "linux",
+      "osImage": "Debian GNU/Linux 12 (bookworm)"
+    },
+    "client_script_sha256": "49efb9dd93236de8fdfaa6f2b90979ff2b444306fcb319c6d3cbc3273f9f4e36"
+  },
+  "method": {
+    "configurations": {
+      "A": {
+        "workers": "1",
+        "cpu": "500m",
+        "memory": "512Mi"
+      },
+      "C": {
+        "workers": "2",
+        "cpu": "1000m",
+        "memory": "1Gi"
+      }
+    },
+    "order": [
+      "A",
+      "C",
+      "C",
+      "A",
+      "A",
+      "C",
+      "C",
+      "A",
+      "A",
+      "C"
+    ],
+    "warmup_per_round": 2,
+    "concurrent_per_round": 20,
+    "poll_interval_s": 2,
+    "repetitions_per_configuration": 5
+  },
+  "rounds": [
+    {
+      "number": 1,
+      "configuration": "A",
+      "started_at": "2026-10-08T12:06:23+00:00",
+      "finished_at": "2026-10-08T12:07:01+00:00",
+      "web_before": {
+        "name": "web-7fb7c464ff-5zf6m",
+        "restarts": 0,
+        "memory_peak_bytes": 130809856
+      },
+      "web_after": {
+        "name": "web-7fb7c464ff-5zf6m",
+        "restarts": 0,
+        "memory_peak_bytes": 214929408
+      },
+      "measurement": {
+        "measured_at": "2026-10-08T12:06:24+00:00",
+        "body": {
+          "ticker": "AAPL.csv",
+          "rule_type": "RSI",
+          "params": {},
+          "start_date": "2020-01-01",
+          "end_date": "2024-12-31"
+        },
+        "rounds": [
+          {
+            "mode": "sequential",
+            "n": 2,
+            "runs": [
+              {
+                "run_id": "c7c45e21-ef37-4eaf-a901-e6f30f0563e1",
+                "status": "SUCCEEDED",
+                "accept_s": 0.769,
+                "start_s": 2.548,
+                "worker_s": 0.0,
+                "e2e_s": 4.063,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "06f3aba7-f304-4f8b-8739-635e82c7425c",
+                "status": "SUCCEEDED",
+                "accept_s": 0.015,
+                "start_s": 1.484,
+                "worker_s": 0.0,
+                "e2e_s": 3.085,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 2,
+              "succeeded": 2,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.015,
+                "median": 0.392,
+                "p95": 0.769,
+                "max": 0.769
+              },
+              "start_s": {
+                "min": 1.484,
+                "median": 2.016,
+                "p95": 2.548,
+                "max": 2.548
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 0.0,
+                "max": 0.0
+              },
+              "e2e_s": {
+                "min": 3.085,
+                "median": 3.574,
+                "p95": 4.063,
+                "max": 4.063
+              }
+            }
+          },
+          {
+            "mode": "concurrent",
+            "n": 20,
+            "runs": [
+              {
+                "run_id": "175fa167-e844-432c-8eca-9ed891d584a0",
+                "status": "SUCCEEDED",
+                "accept_s": 0.012,
+                "start_s": 4.399,
+                "worker_s": 1.0,
+                "e2e_s": 7.569,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "c1d824ef-2d5b-4bc3-88d6-50febb223d37",
+                "status": "SUCCEEDED",
+                "accept_s": 0.025,
+                "start_s": 5.399,
+                "worker_s": 0.0,
+                "e2e_s": 8.699,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "a2c9ba24-97ff-4bee-8125-ea236fa7341c",
+                "status": "SUCCEEDED",
+                "accept_s": 0.04,
+                "start_s": 4.399,
+                "worker_s": 1.0,
+                "e2e_s": 9.768,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "83aadd60-368f-49b4-a7ad-cfa10ca26b52",
+                "status": "SUCCEEDED",
+                "accept_s": 0.065,
+                "start_s": 4.398,
+                "worker_s": 1.0,
+                "e2e_s": 10.855,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "38290709-375c-46fd-a1f1-8a08511d6ed5",
+                "status": "SUCCEEDED",
+                "accept_s": 0.077,
+                "start_s": 5.398,
+                "worker_s": 0.0,
+                "e2e_s": 12.006,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "370129ab-ae9e-4cd9-b4a3-bd1db0ee33e3",
+                "status": "SUCCEEDED",
+                "accept_s": 0.092,
+                "start_s": 5.397,
+                "worker_s": 0.0,
+                "e2e_s": 13.07,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "1da8211d-a00b-42cd-9766-b63d88dc9948",
+                "status": "SUCCEEDED",
+                "accept_s": 0.107,
+                "start_s": 4.397,
+                "worker_s": 0.0,
+                "e2e_s": 14.158,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "82ca96df-4080-483f-9e6f-494c31a9c440",
+                "status": "SUCCEEDED",
+                "accept_s": 0.12,
+                "start_s": 5.396,
+                "worker_s": 0.0,
+                "e2e_s": 15.36,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "ac18a65b-2366-4105-9b4f-beca410bbd5e",
+                "status": "SUCCEEDED",
+                "accept_s": 0.134,
+                "start_s": 4.396,
+                "worker_s": 1.0,
+                "e2e_s": 16.375,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "5b01a2ef-379f-4262-8dc1-c00954f1ade1",
+                "status": "SUCCEEDED",
+                "accept_s": 0.149,
+                "start_s": 4.395,
+                "worker_s": 0.0,
+                "e2e_s": 17.408,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "d4d8d9e3-9bcf-41f1-af44-6baceb5a6803",
+                "status": "SUCCEEDED",
+                "accept_s": 0.162,
+                "start_s": 5.395,
+                "worker_s": 1.0,
+                "e2e_s": 18.593,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "ebb8e718-f5d0-4a62-a68e-92214a42efee",
+                "status": "SUCCEEDED",
+                "accept_s": 0.175,
+                "start_s": 4.395,
+                "worker_s": 1.0,
+                "e2e_s": 19.606,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "3b2b0093-45c2-42d6-b5b0-13d02b2b99f8",
+                "status": "SUCCEEDED",
+                "accept_s": 0.193,
+                "start_s": 5.394,
+                "worker_s": 0.0,
+                "e2e_s": 21.254,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "b9ce30f1-b8d3-4d9c-9272-67404cb0f084",
+                "status": "SUCCEEDED",
+                "accept_s": 0.202,
+                "start_s": 5.393,
+                "worker_s": 0.0,
+                "e2e_s": 23.462,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "d9ed6d77-f356-428d-b70d-8561fa4d4747",
+                "status": "SUCCEEDED",
+                "accept_s": 0.211,
+                "start_s": 5.393,
+                "worker_s": 1.0,
+                "e2e_s": 22.288,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "249c8202-651a-49ab-9da3-255e0ef86ed0",
+                "status": "SUCCEEDED",
+                "accept_s": 0.221,
+                "start_s": 5.392,
+                "worker_s": 0.0,
+                "e2e_s": 24.491,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "a2b1ed1e-eec0-469f-bb94-62d274dc115a",
+                "status": "SUCCEEDED",
+                "accept_s": 0.231,
+                "start_s": 6.392,
+                "worker_s": 0.0,
+                "e2e_s": 25.549,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "1458b76a-cba1-4e55-be7d-daefa5238ffb",
+                "status": "SUCCEEDED",
+                "accept_s": 0.241,
+                "start_s": 6.392,
+                "worker_s": 0.0,
+                "e2e_s": 26.883,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "77132913-906b-4776-9442-632886174c17",
+                "status": "SUCCEEDED",
+                "accept_s": 0.261,
+                "start_s": 5.391,
+                "worker_s": 0.0,
+                "e2e_s": 28.958,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "a8aa28f5-6385-4d91-8f31-5c2843b8454f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.25,
+                "start_s": 6.391,
+                "worker_s": 0.0,
+                "e2e_s": 27.9,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 20,
+              "succeeded": 20,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.012,
+                "median": 0.155,
+                "p95": 0.25,
+                "max": 0.261
+              },
+              "start_s": {
+                "min": 4.395,
+                "median": 5.393,
+                "p95": 6.392,
+                "max": 6.392
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 1.0,
+                "max": 1.0
+              },
+              "e2e_s": {
+                "min": 7.569,
+                "median": 18.001,
+                "p95": 27.9,
+                "max": 28.958
+              },
+              "wall_s": 28.969,
+              "runs_per_min": 41.42
+            }
+          }
+        ]
+      }
+    },
+    {
+      "number": 2,
+      "configuration": "C",
+      "started_at": "2026-10-08T12:07:14+00:00",
+      "finished_at": "2026-10-08T12:07:42+00:00",
+      "web_before": {
+        "name": "web-6bd9f85857-kxbgj",
+        "restarts": 0,
+        "memory_peak_bytes": 235479040
+      },
+      "web_after": {
+        "name": "web-6bd9f85857-kxbgj",
+        "restarts": 0,
+        "memory_peak_bytes": 428134400
+      },
+      "measurement": {
+        "measured_at": "2026-10-08T12:07:15+00:00",
+        "body": {
+          "ticker": "AAPL.csv",
+          "rule_type": "RSI",
+          "params": {},
+          "start_date": "2020-01-01",
+          "end_date": "2024-12-31"
+        },
+        "rounds": [
+          {
+            "mode": "sequential",
+            "n": 2,
+            "runs": [
+              {
+                "run_id": "dd4dafd9-2852-4e08-ad50-b0dec145ebeb",
+                "status": "SUCCEEDED",
+                "accept_s": 0.557,
+                "start_s": 1.769,
+                "worker_s": 0.0,
+                "e2e_s": 3.441,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "5d455eae-820b-473f-bc9a-2113e310c1ef",
+                "status": "SUCCEEDED",
+                "accept_s": 0.012,
+                "start_s": 1.329,
+                "worker_s": 0.0,
+                "e2e_s": 2.549,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 2,
+              "succeeded": 2,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.012,
+                "median": 0.285,
+                "p95": 0.557,
+                "max": 0.557
+              },
+              "start_s": {
+                "min": 1.329,
+                "median": 1.549,
+                "p95": 1.769,
+                "max": 1.769
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 0.0,
+                "max": 0.0
+              },
+              "e2e_s": {
+                "min": 2.549,
+                "median": 2.995,
+                "p95": 3.441,
+                "max": 3.441
+              }
+            }
+          },
+          {
+            "mode": "concurrent",
+            "n": 20,
+            "runs": [
+              {
+                "run_id": "dffc4c86-c2e7-4409-9c6e-080f6f2e6e4c",
+                "status": "SUCCEEDED",
+                "accept_s": 0.015,
+                "start_s": 6.779,
+                "worker_s": 0.0,
+                "e2e_s": 8.249,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "42cf1946-8719-43e0-bc68-ed86248cf1af",
+                "status": "SUCCEEDED",
+                "accept_s": 0.017,
+                "start_s": 5.779,
+                "worker_s": 0.0,
+                "e2e_s": 8.29,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "7d8ba595-c24c-4c4d-b969-11e3ba38fb75",
+                "status": "SUCCEEDED",
+                "accept_s": 0.038,
+                "start_s": 5.779,
+                "worker_s": 0.0,
+                "e2e_s": 9.859,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "1d7dcece-cdc7-4373-b7ca-d7279bb40ec0",
+                "status": "SUCCEEDED",
+                "accept_s": 0.032,
+                "start_s": 5.778,
+                "worker_s": 0.0,
+                "e2e_s": 9.996,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "8a077c08-06d4-4921-bdcf-b93c0937f331",
+                "status": "SUCCEEDED",
+                "accept_s": 0.048,
+                "start_s": 4.778,
+                "worker_s": 1.0,
+                "e2e_s": 11.308,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "1470bafa-53b2-490b-95d4-80dd50efc563",
+                "status": "SUCCEEDED",
+                "accept_s": 0.057,
+                "start_s": 4.777,
+                "worker_s": 0.0,
+                "e2e_s": 11.456,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "9c04c5ce-bbf4-488c-9b17-d73b6015a6fb",
+                "status": "SUCCEEDED",
+                "accept_s": 0.074,
+                "start_s": 6.776,
+                "worker_s": 0.0,
+                "e2e_s": 12.604,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "75915c6d-7485-43a0-a9ba-dd9df9c7563f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.078,
+                "start_s": 4.776,
+                "worker_s": 0.0,
+                "e2e_s": 5.863,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "570690b6-e313-4e54-afd3-7a6536038ae9",
+                "status": "SUCCEEDED",
+                "accept_s": 0.091,
+                "start_s": 5.776,
+                "worker_s": 1.0,
+                "e2e_s": 12.701,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "2ad9258d-4691-4ada-8956-47621bda8c5b",
+                "status": "SUCCEEDED",
+                "accept_s": 0.111,
+                "start_s": 5.775,
+                "worker_s": 0.0,
+                "e2e_s": 14.05,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "2a98f037-86a8-476a-929a-49f84e2af24f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.1,
+                "start_s": 5.775,
+                "worker_s": 0.0,
+                "e2e_s": 13.895,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "e1501e70-3075-445c-9ae6-1dca4504cbff",
+                "status": "SUCCEEDED",
+                "accept_s": 0.119,
+                "start_s": 5.775,
+                "worker_s": 1.0,
+                "e2e_s": 15.349,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "f076f030-e87d-4aa3-b16d-cea01666a023",
+                "status": "SUCCEEDED",
+                "accept_s": 0.129,
+                "start_s": 5.774,
+                "worker_s": 0.0,
+                "e2e_s": 16.806,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "dfce44a9-4328-4392-be07-740777e2d584",
+                "status": "SUCCEEDED",
+                "accept_s": 0.132,
+                "start_s": 5.773,
+                "worker_s": 0.0,
+                "e2e_s": 15.298,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "e83ef3a7-93fb-44ad-b55d-c584d319962f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.141,
+                "start_s": 6.773,
+                "worker_s": 0.0,
+                "e2e_s": 16.879,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "242a4fe3-f936-4b49-acc1-f121e5f9faee",
+                "status": "SUCCEEDED",
+                "accept_s": 0.143,
+                "start_s": 4.772,
+                "worker_s": 1.0,
+                "e2e_s": 17.981,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "794f329f-d250-4ada-82a2-180fb1a88eb6",
+                "status": "SUCCEEDED",
+                "accept_s": 0.155,
+                "start_s": 6.772,
+                "worker_s": 0.0,
+                "e2e_s": 19.392,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "a0eb75d0-e086-4452-8ba3-9f43437e3381",
+                "status": "SUCCEEDED",
+                "accept_s": 0.155,
+                "start_s": 5.772,
+                "worker_s": 0.0,
+                "e2e_s": 18.053,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "f9ee12a7-4594-4b6a-bfd6-25ff9a1e1e71",
+                "status": "SUCCEEDED",
+                "accept_s": 0.164,
+                "start_s": 6.771,
+                "worker_s": 0.0,
+                "e2e_s": 19.345,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "20ecbedf-d4e4-4cd5-9a08-d1a258ecbeac",
+                "status": "SUCCEEDED",
+                "accept_s": 0.172,
+                "start_s": 5.77,
+                "worker_s": 0.0,
+                "e2e_s": 19.949,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 20,
+              "succeeded": 20,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.015,
+                "median": 0.106,
+                "p95": 0.164,
+                "max": 0.172
+              },
+              "start_s": {
+                "min": 4.772,
+                "median": 5.775,
+                "p95": 6.776,
+                "max": 6.779
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 1.0,
+                "max": 1.0
+              },
+              "e2e_s": {
+                "min": 5.863,
+                "median": 13.973,
+                "p95": 19.392,
+                "max": 19.949
+              },
+              "wall_s": 19.962,
+              "runs_per_min": 60.11
+            }
+          }
+        ]
+      }
+    },
+    {
+      "number": 3,
+      "configuration": "C",
+      "started_at": "2026-10-08T12:07:55+00:00",
+      "finished_at": "2026-10-08T12:08:25+00:00",
+      "web_before": {
+        "name": "web-66dff4ff7d-7rgbs",
+        "restarts": 0,
+        "memory_peak_bytes": 237178880
+      },
+      "web_after": {
+        "name": "web-66dff4ff7d-7rgbs",
+        "restarts": 0,
+        "memory_peak_bytes": 393932800
+      },
+      "measurement": {
+        "measured_at": "2026-10-08T12:07:56+00:00",
+        "body": {
+          "ticker": "AAPL.csv",
+          "rule_type": "RSI",
+          "params": {},
+          "start_date": "2020-01-01",
+          "end_date": "2024-12-31"
+        },
+        "rounds": [
+          {
+            "mode": "sequential",
+            "n": 2,
+            "runs": [
+              {
+                "run_id": "e1be1d24-b225-4eb3-824b-96c1caa56b5d",
+                "status": "SUCCEEDED",
+                "accept_s": 0.407,
+                "start_s": 2.509,
+                "worker_s": 0.0,
+                "e2e_s": 3.735,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "9919e5f8-bd4b-4222-a1b0-2ebb61498c11",
+                "status": "SUCCEEDED",
+                "accept_s": 0.017,
+                "start_s": 1.774,
+                "worker_s": 0.0,
+                "e2e_s": 2.976,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 2,
+              "succeeded": 2,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.017,
+                "median": 0.212,
+                "p95": 0.407,
+                "max": 0.407
+              },
+              "start_s": {
+                "min": 1.774,
+                "median": 2.141,
+                "p95": 2.509,
+                "max": 2.509
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 0.0,
+                "max": 0.0
+              },
+              "e2e_s": {
+                "min": 2.976,
+                "median": 3.356,
+                "p95": 3.735,
+                "max": 3.735
+              }
+            }
+          },
+          {
+            "mode": "concurrent",
+            "n": 20,
+            "runs": [
+              {
+                "run_id": "e3a7cc0b-9cf6-466a-81d1-02a6bde0d866",
+                "status": "SUCCEEDED",
+                "accept_s": 0.015,
+                "start_s": 5.798,
+                "worker_s": 1.0,
+                "e2e_s": 21.086,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "0d0d0d12-f837-4850-9ca1-e42239e68a20",
+                "status": "SUCCEEDED",
+                "accept_s": 0.018,
+                "start_s": 6.797,
+                "worker_s": 1.0,
+                "e2e_s": 21.102,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "48845cbc-8b1c-4b0a-bb2c-8631e03037d8",
+                "status": "SUCCEEDED",
+                "accept_s": 0.04,
+                "start_s": 4.797,
+                "worker_s": 0.0,
+                "e2e_s": 9.093,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "1fafdd80-1c99-476f-9b6c-692568604b34",
+                "status": "SUCCEEDED",
+                "accept_s": 0.034,
+                "start_s": 4.796,
+                "worker_s": 0.0,
+                "e2e_s": 8.992,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "a8afe1c8-e70b-4522-9ed3-ea5f27c8fc4f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.057,
+                "start_s": 5.796,
+                "worker_s": 0.0,
+                "e2e_s": 10.588,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "0abf12f3-acd7-4c1e-937c-9cba3bf392c8",
+                "status": "SUCCEEDED",
+                "accept_s": 0.059,
+                "start_s": 5.795,
+                "worker_s": 0.0,
+                "e2e_s": 10.967,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "e1b1d099-7a37-4148-a3ad-03c490534e69",
+                "status": "SUCCEEDED",
+                "accept_s": 0.088,
+                "start_s": 6.795,
+                "worker_s": 1.0,
+                "e2e_s": 12.169,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "92a965e0-7432-4011-a5ee-d3199302dbe9",
+                "status": "SUCCEEDED",
+                "accept_s": 0.088,
+                "start_s": 6.795,
+                "worker_s": 0.0,
+                "e2e_s": 12.201,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "026ca975-9818-4e1e-9179-42ed5ae3a9b3",
+                "status": "SUCCEEDED",
+                "accept_s": 0.114,
+                "start_s": 6.794,
+                "worker_s": 1.0,
+                "e2e_s": 13.464,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "da93f3ad-866d-4240-ada5-87c343eb6bba",
+                "status": "SUCCEEDED",
+                "accept_s": 0.113,
+                "start_s": 6.794,
+                "worker_s": 1.0,
+                "e2e_s": 13.382,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "310ab46e-872c-43a1-ad82-c12f825710a9",
+                "status": "SUCCEEDED",
+                "accept_s": 0.136,
+                "start_s": 7.793,
+                "worker_s": 0.0,
+                "e2e_s": 14.59,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "c0ac3be5-d9f7-4dcd-b58e-9df2c89c1c01",
+                "status": "SUCCEEDED",
+                "accept_s": 0.134,
+                "start_s": 5.793,
+                "worker_s": 1.0,
+                "e2e_s": 14.796,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "8ba60724-a5d2-4661-ae59-2c28498216ae",
+                "status": "SUCCEEDED",
+                "accept_s": 0.164,
+                "start_s": 7.792,
+                "worker_s": 0.0,
+                "e2e_s": 15.963,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "532faf84-38aa-4de2-be49-344df6de4d63",
+                "status": "SUCCEEDED",
+                "accept_s": 0.163,
+                "start_s": 7.792,
+                "worker_s": 0.0,
+                "e2e_s": 15.996,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "7377a0c9-1151-4c3a-80ac-f08330be64d7",
+                "status": "SUCCEEDED",
+                "accept_s": 0.208,
+                "start_s": 8.791,
+                "worker_s": 0.0,
+                "e2e_s": 18.502,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "6a75c9d4-b01a-483d-9fc8-715d9f1e3142",
+                "status": "SUCCEEDED",
+                "accept_s": 0.178,
+                "start_s": 6.791,
+                "worker_s": 0.0,
+                "e2e_s": 17.193,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "43a3dc89-60c3-4490-9cc8-4b7007bb680a",
+                "status": "SUCCEEDED",
+                "accept_s": 0.178,
+                "start_s": 6.79,
+                "worker_s": 0.0,
+                "e2e_s": 17.262,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "92588b62-a919-4081-a6ac-3d5b97ff1b0f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.198,
+                "start_s": 5.79,
+                "worker_s": 0.0,
+                "e2e_s": 18.482,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "1f076f46-1aa9-45d9-83bc-af6e8328ab7c",
+                "status": "SUCCEEDED",
+                "accept_s": 0.214,
+                "start_s": 8.789,
+                "worker_s": 0.0,
+                "e2e_s": 19.895,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "41839236-6fc1-4dce-a058-b1c3bca79da7",
+                "status": "SUCCEEDED",
+                "accept_s": 0.218,
+                "start_s": 7.789,
+                "worker_s": 0.0,
+                "e2e_s": 19.872,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 20,
+              "succeeded": 20,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.015,
+                "median": 0.124,
+                "p95": 0.214,
+                "max": 0.218
+              },
+              "start_s": {
+                "min": 4.796,
+                "median": 6.794,
+                "p95": 8.789,
+                "max": 8.791
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 1.0,
+                "max": 1.0
+              },
+              "e2e_s": {
+                "min": 8.992,
+                "median": 15.38,
+                "p95": 21.086,
+                "max": 21.102
+              },
+              "wall_s": 21.107,
+              "runs_per_min": 56.85
+            }
+          }
+        ]
+      }
+    },
+    {
+      "number": 4,
+      "configuration": "A",
+      "started_at": "2026-10-08T12:08:39+00:00",
+      "finished_at": "2026-10-08T12:09:21+00:00",
+      "web_before": {
+        "name": "web-6f55d4fc5b-xkcb7",
+        "restarts": 0,
+        "memory_peak_bytes": 129585152
+      },
+      "web_after": {
+        "name": "web-6f55d4fc5b-xkcb7",
+        "restarts": 0,
+        "memory_peak_bytes": 213372928
+      },
+      "measurement": {
+        "measured_at": "2026-10-08T12:08:40+00:00",
+        "body": {
+          "ticker": "AAPL.csv",
+          "rule_type": "RSI",
+          "params": {},
+          "start_date": "2020-01-01",
+          "end_date": "2024-12-31"
+        },
+        "rounds": [
+          {
+            "mode": "sequential",
+            "n": 2,
+            "runs": [
+              {
+                "run_id": "5761f36e-cdab-45ed-9002-c5e02a9cd256",
+                "status": "SUCCEEDED",
+                "accept_s": 0.736,
+                "start_s": 2.513,
+                "worker_s": 0.0,
+                "e2e_s": 3.974,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "fd4d2ce1-f75d-4a2b-bb81-72f395ec9c01",
+                "status": "SUCCEEDED",
+                "accept_s": 0.015,
+                "start_s": 1.539,
+                "worker_s": 0.0,
+                "e2e_s": 3.158,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 2,
+              "succeeded": 2,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.015,
+                "median": 0.376,
+                "p95": 0.736,
+                "max": 0.736
+              },
+              "start_s": {
+                "min": 1.539,
+                "median": 2.026,
+                "p95": 2.513,
+                "max": 2.513
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 0.0,
+                "max": 0.0
+              },
+              "e2e_s": {
+                "min": 3.158,
+                "median": 3.566,
+                "p95": 3.974,
+                "max": 3.974
+              }
+            }
+          },
+          {
+            "mode": "concurrent",
+            "n": 20,
+            "runs": [
+              {
+                "run_id": "2bcdc78a-6eb4-4a98-8ed3-600038d490ca",
+                "status": "SUCCEEDED",
+                "accept_s": 0.017,
+                "start_s": 4.38,
+                "worker_s": 0.0,
+                "e2e_s": 8.589,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "f17032b4-f9eb-4a7d-bbce-ee7d52cc2ee2",
+                "status": "SUCCEEDED",
+                "accept_s": 0.114,
+                "start_s": 7.38,
+                "worker_s": 0.0,
+                "e2e_s": 13.967,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "45277cc2-a52f-46c3-82ef-f3a324548577",
+                "status": "SUCCEEDED",
+                "accept_s": 0.066,
+                "start_s": 6.38,
+                "worker_s": 0.0,
+                "e2e_s": 10.085,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "81ec3bbe-def4-4f7b-b6d8-3510ad47ed11",
+                "status": "SUCCEEDED",
+                "accept_s": 0.081,
+                "start_s": 5.379,
+                "worker_s": 0.0,
+                "e2e_s": 11.341,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "d182c9e9-e5df-4805-a2e7-26b5a650a7af",
+                "status": "SUCCEEDED",
+                "accept_s": 0.097,
+                "start_s": 5.379,
+                "worker_s": 0.0,
+                "e2e_s": 12.587,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "9217990a-31ff-4b87-a762-0262648bc0ad",
+                "status": "SUCCEEDED",
+                "accept_s": 0.132,
+                "start_s": 5.378,
+                "worker_s": 0.0,
+                "e2e_s": 15.091,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "474fce15-c996-42d0-88c8-d8209016728b",
+                "status": "SUCCEEDED",
+                "accept_s": 0.157,
+                "start_s": 5.378,
+                "worker_s": 1.0,
+                "e2e_s": 16.935,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "9725121d-7316-476c-b3b4-06a2cbe8f50f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.176,
+                "start_s": 5.377,
+                "worker_s": 1.0,
+                "e2e_s": 18.347,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "c0a98105-5015-4c43-9219-405be1c01bc0",
+                "status": "SUCCEEDED",
+                "accept_s": 0.192,
+                "start_s": 5.377,
+                "worker_s": 0.0,
+                "e2e_s": 19.528,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "cff2caa4-ce5b-4786-a848-f36301d240c9",
+                "status": "SUCCEEDED",
+                "accept_s": 0.209,
+                "start_s": 6.376,
+                "worker_s": 0.0,
+                "e2e_s": 20.737,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "5ddd4668-d82d-4244-ae78-b7605454be78",
+                "status": "SUCCEEDED",
+                "accept_s": 0.232,
+                "start_s": 6.375,
+                "worker_s": 1.0,
+                "e2e_s": 21.933,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "895a012b-7b12-47e3-944c-9a52da19f14d",
+                "status": "SUCCEEDED",
+                "accept_s": 0.257,
+                "start_s": 6.375,
+                "worker_s": 1.0,
+                "e2e_s": 23.256,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "7624f738-b5fb-46c2-b2a7-c73cb4e616ba",
+                "status": "SUCCEEDED",
+                "accept_s": 0.293,
+                "start_s": 6.374,
+                "worker_s": 0.0,
+                "e2e_s": 25.636,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "9c39da1d-c46a-4148-86a6-a44e4316fed8",
+                "status": "SUCCEEDED",
+                "accept_s": 0.277,
+                "start_s": 7.374,
+                "worker_s": 0.0,
+                "e2e_s": 24.437,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "936a6e6d-3094-4d8c-af19-0e41c4b96478",
+                "status": "SUCCEEDED",
+                "accept_s": 0.304,
+                "start_s": 5.374,
+                "worker_s": 1.0,
+                "e2e_s": 26.948,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "82d4d4b5-cc6d-4f57-9b0b-32dcedffbcbd",
+                "status": "SUCCEEDED",
+                "accept_s": 0.316,
+                "start_s": 7.373,
+                "worker_s": 0.0,
+                "e2e_s": 28.122,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "a9e0bd24-6c4a-4603-9341-fe2d643e2c3d",
+                "status": "SUCCEEDED",
+                "accept_s": 0.327,
+                "start_s": 6.373,
+                "worker_s": 1.0,
+                "e2e_s": 29.242,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "91a10586-0590-41ca-a014-587cdc25bd02",
+                "status": "SUCCEEDED",
+                "accept_s": 0.353,
+                "start_s": 7.372,
+                "worker_s": 0.0,
+                "e2e_s": 31.735,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "f78dbeb0-b815-4b39-bb31-029eedecf285",
+                "status": "SUCCEEDED",
+                "accept_s": 0.367,
+                "start_s": 6.371,
+                "worker_s": 0.0,
+                "e2e_s": 30.537,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "9404cdcc-869b-4cf5-9856-0e79a5625752",
+                "status": "SUCCEEDED",
+                "accept_s": 0.387,
+                "start_s": 7.371,
+                "worker_s": 0.0,
+                "e2e_s": 32.855,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 20,
+              "succeeded": 20,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.017,
+                "median": 0.221,
+                "p95": 0.367,
+                "max": 0.387
+              },
+              "start_s": {
+                "min": 4.38,
+                "median": 6.373,
+                "p95": 7.374,
+                "max": 7.38
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 1.0,
+                "max": 1.0
+              },
+              "e2e_s": {
+                "min": 8.589,
+                "median": 21.335,
+                "p95": 31.735,
+                "max": 32.855
+              },
+              "wall_s": 32.869,
+              "runs_per_min": 36.51
+            }
+          }
+        ]
+      }
+    },
+    {
+      "number": 5,
+      "configuration": "A",
+      "started_at": "2026-10-08T12:09:35+00:00",
+      "finished_at": "2026-10-08T12:10:18+00:00",
+      "web_before": {
+        "name": "web-64d6b87dcf-plqms",
+        "restarts": 0,
+        "memory_peak_bytes": 129560576
+      },
+      "web_after": {
+        "name": "web-64d6b87dcf-plqms",
+        "restarts": 0,
+        "memory_peak_bytes": 211591168
+      },
+      "measurement": {
+        "measured_at": "2026-10-08T12:09:35+00:00",
+        "body": {
+          "ticker": "AAPL.csv",
+          "rule_type": "RSI",
+          "params": {},
+          "start_date": "2020-01-01",
+          "end_date": "2024-12-31"
+        },
+        "rounds": [
+          {
+            "mode": "sequential",
+            "n": 2,
+            "runs": [
+              {
+                "run_id": "f1263dea-f31c-46b3-9462-482f9076faea",
+                "status": "SUCCEEDED",
+                "accept_s": 0.768,
+                "start_s": 3.24,
+                "worker_s": 0.0,
+                "e2e_s": 4.594,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "5a818ca5-f963-4fba-92cc-5774b0a9d218",
+                "status": "SUCCEEDED",
+                "accept_s": 0.013,
+                "start_s": 1.645,
+                "worker_s": 0.0,
+                "e2e_s": 3.121,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 2,
+              "succeeded": 2,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.013,
+                "median": 0.391,
+                "p95": 0.768,
+                "max": 0.768
+              },
+              "start_s": {
+                "min": 1.645,
+                "median": 2.442,
+                "p95": 3.24,
+                "max": 3.24
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 0.0,
+                "max": 0.0
+              },
+              "e2e_s": {
+                "min": 3.121,
+                "median": 3.857,
+                "p95": 4.594,
+                "max": 4.594
+              }
+            }
+          },
+          {
+            "mode": "concurrent",
+            "n": 20,
+            "runs": [
+              {
+                "run_id": "f30bf1ae-3c65-4f55-b647-4cebdac068c1",
+                "status": "SUCCEEDED",
+                "accept_s": 0.015,
+                "start_s": 4.523,
+                "worker_s": 0.0,
+                "e2e_s": 8.5,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "5a78c3fa-7b69-41ab-a24f-bd30d57bbca7",
+                "status": "SUCCEEDED",
+                "accept_s": 0.037,
+                "start_s": 5.523,
+                "worker_s": 0.0,
+                "e2e_s": 9.906,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "c538856d-1c7b-4586-bb36-ff13e67783dc",
+                "status": "SUCCEEDED",
+                "accept_s": 0.05,
+                "start_s": 5.523,
+                "worker_s": 0.0,
+                "e2e_s": 11.182,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "cfbfd85a-e5de-4fd1-adb2-efef8ff92715",
+                "status": "SUCCEEDED",
+                "accept_s": 0.082,
+                "start_s": 5.522,
+                "worker_s": 1.0,
+                "e2e_s": 12.385,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "f8a02201-2fe8-43b6-8836-3d1814540ed8",
+                "status": "SUCCEEDED",
+                "accept_s": 0.098,
+                "start_s": 4.522,
+                "worker_s": 1.0,
+                "e2e_s": 13.763,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "bf1b817f-6fc3-4ddf-b15b-8225bc4509c7",
+                "status": "SUCCEEDED",
+                "accept_s": 0.114,
+                "start_s": 6.521,
+                "worker_s": 1.0,
+                "e2e_s": 14.981,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "00788311-e0e5-4027-83d2-71869eb6a86f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.129,
+                "start_s": 4.521,
+                "worker_s": 1.0,
+                "e2e_s": 16.381,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "5bf35501-f438-4c04-ba17-c9e0b7632cc6",
+                "status": "SUCCEEDED",
+                "accept_s": 0.149,
+                "start_s": 6.52,
+                "worker_s": 1.0,
+                "e2e_s": 17.81,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "5222fbf2-992e-4a1a-af1c-2eaaaaf553d1",
+                "status": "SUCCEEDED",
+                "accept_s": 0.165,
+                "start_s": 5.52,
+                "worker_s": 0.0,
+                "e2e_s": 19.176,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "94d08bce-0824-4615-8a45-7f83b76da080",
+                "status": "SUCCEEDED",
+                "accept_s": 0.179,
+                "start_s": 4.519,
+                "worker_s": 1.0,
+                "e2e_s": 20.507,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "9ac350f4-1d38-4ea9-b6a4-940822db8755",
+                "status": "SUCCEEDED",
+                "accept_s": 0.229,
+                "start_s": 6.519,
+                "worker_s": 0.0,
+                "e2e_s": 24.259,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "b8aeb031-01ca-49c6-952c-20ad74f66e84",
+                "status": "SUCCEEDED",
+                "accept_s": 0.193,
+                "start_s": 7.519,
+                "worker_s": 0.0,
+                "e2e_s": 21.696,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "5b1c78ad-cb40-43c8-b3cf-516a97aebad7",
+                "status": "SUCCEEDED",
+                "accept_s": 0.208,
+                "start_s": 6.518,
+                "worker_s": 0.0,
+                "e2e_s": 23.073,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "fecf61ea-421b-4be0-ae58-f42b90ae26a8",
+                "status": "SUCCEEDED",
+                "accept_s": 0.24,
+                "start_s": 4.518,
+                "worker_s": 0.0,
+                "e2e_s": 25.456,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "1f6e1a55-8c48-45ac-ad6c-d49ca1055bb4",
+                "status": "SUCCEEDED",
+                "accept_s": 0.252,
+                "start_s": 5.517,
+                "worker_s": 1.0,
+                "e2e_s": 27.427,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "6f5f1d38-bd15-4964-acc2-0e310d3dd108",
+                "status": "SUCCEEDED",
+                "accept_s": 0.264,
+                "start_s": 5.516,
+                "worker_s": 1.0,
+                "e2e_s": 28.625,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "f9fe51e2-f0ed-487c-9e92-35c72cedcfb0",
+                "status": "SUCCEEDED",
+                "accept_s": 0.285,
+                "start_s": 6.516,
+                "worker_s": 0.0,
+                "e2e_s": 29.752,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "abae552e-3896-47f1-be52-92a1695c58e4",
+                "status": "SUCCEEDED",
+                "accept_s": 0.297,
+                "start_s": 8.516,
+                "worker_s": 0.0,
+                "e2e_s": 31.214,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "148a2b82-fda7-46b5-a47e-dd71b56c5eab",
+                "status": "SUCCEEDED",
+                "accept_s": 0.306,
+                "start_s": 7.515,
+                "worker_s": 0.0,
+                "e2e_s": 32.433,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "3f23b18a-87d0-4493-bf8d-ffed6af2bf69",
+                "status": "SUCCEEDED",
+                "accept_s": 0.318,
+                "start_s": 7.515,
+                "worker_s": 0.0,
+                "e2e_s": 33.65,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 20,
+              "succeeded": 20,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.015,
+                "median": 0.186,
+                "p95": 0.306,
+                "max": 0.318
+              },
+              "start_s": {
+                "min": 4.518,
+                "median": 5.523,
+                "p95": 7.519,
+                "max": 8.516
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 1.0,
+                "max": 1.0
+              },
+              "e2e_s": {
+                "min": 8.5,
+                "median": 21.102,
+                "p95": 32.433,
+                "max": 33.65
+              },
+              "wall_s": 33.663,
+              "runs_per_min": 35.65
+            }
+          }
+        ]
+      }
+    },
+    {
+      "number": 6,
+      "configuration": "C",
+      "started_at": "2026-10-08T12:10:31+00:00",
+      "finished_at": "2026-10-08T12:11:00+00:00",
+      "web_before": {
+        "name": "web-6bb77df7bf-sgt47",
+        "restarts": 0,
+        "memory_peak_bytes": 237056000
+      },
+      "web_after": {
+        "name": "web-6bb77df7bf-sgt47",
+        "restarts": 0,
+        "memory_peak_bytes": 397381632
+      },
+      "measurement": {
+        "measured_at": "2026-10-08T12:10:31+00:00",
+        "body": {
+          "ticker": "AAPL.csv",
+          "rule_type": "RSI",
+          "params": {},
+          "start_date": "2020-01-01",
+          "end_date": "2024-12-31"
+        },
+        "rounds": [
+          {
+            "mode": "sequential",
+            "n": 2,
+            "runs": [
+              {
+                "run_id": "c6fa3075-fc40-41f9-a3f2-e60524a65bf4",
+                "status": "SUCCEEDED",
+                "accept_s": 0.416,
+                "start_s": 2.064,
+                "worker_s": 0.0,
+                "e2e_s": 3.45,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "6f73df57-10fd-4406-ba4a-c20d6c5655ad",
+                "status": "SUCCEEDED",
+                "accept_s": 0.019,
+                "start_s": 1.614,
+                "worker_s": 0.0,
+                "e2e_s": 2.637,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 2,
+              "succeeded": 2,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.019,
+                "median": 0.217,
+                "p95": 0.416,
+                "max": 0.416
+              },
+              "start_s": {
+                "min": 1.614,
+                "median": 1.839,
+                "p95": 2.064,
+                "max": 2.064
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 0.0,
+                "max": 0.0
+              },
+              "e2e_s": {
+                "min": 2.637,
+                "median": 3.043,
+                "p95": 3.45,
+                "max": 3.45
+              }
+            }
+          },
+          {
+            "mode": "concurrent",
+            "n": 20,
+            "runs": [
+              {
+                "run_id": "d993d0e5-a64c-46de-97cf-3841698034e7",
+                "status": "SUCCEEDED",
+                "accept_s": 0.021,
+                "start_s": 5.976,
+                "worker_s": 1.0,
+                "e2e_s": 20.992,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "72193e79-fd70-40f0-b930-91ce78e81864",
+                "status": "SUCCEEDED",
+                "accept_s": 0.021,
+                "start_s": 5.976,
+                "worker_s": 0.0,
+                "e2e_s": 9.211,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "1d958c55-977f-4782-8994-3eb56f17c21f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.04,
+                "start_s": 5.975,
+                "worker_s": 0.0,
+                "e2e_s": 9.006,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "8dad90bd-bb71-4dd0-893c-de328ef28692",
+                "status": "SUCCEEDED",
+                "accept_s": 0.037,
+                "start_s": 6.975,
+                "worker_s": 0.0,
+                "e2e_s": 21.117,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "8cb11a26-777e-4ffd-83bb-980c50f5b93d",
+                "status": "SUCCEEDED",
+                "accept_s": 0.057,
+                "start_s": 6.974,
+                "worker_s": 1.0,
+                "e2e_s": 10.716,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "b9d406dd-2408-479a-8163-d0b34d93a51f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.056,
+                "start_s": 6.973,
+                "worker_s": 1.0,
+                "e2e_s": 10.813,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "d94e30ca-268b-4550-9fde-9a781e7ca4cc",
+                "status": "SUCCEEDED",
+                "accept_s": 0.092,
+                "start_s": 3.973,
+                "worker_s": 2.0,
+                "e2e_s": 12.094,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "be99994f-13b4-4f15-906c-e8631633fde9",
+                "status": "SUCCEEDED",
+                "accept_s": 0.091,
+                "start_s": 8.973,
+                "worker_s": 0.0,
+                "e2e_s": 13.303,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "78b971b0-e220-4cc4-9c24-e28257272caf",
+                "status": "SUCCEEDED",
+                "accept_s": 0.111,
+                "start_s": 6.972,
+                "worker_s": 0.0,
+                "e2e_s": 14.495,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "7ccb3bcf-8f05-4fa4-a7db-88a85f24220d",
+                "status": "SUCCEEDED",
+                "accept_s": 0.11,
+                "start_s": 7.972,
+                "worker_s": 0.0,
+                "e2e_s": 13.493,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "07c0a747-1078-4019-8a0d-413819471f0e",
+                "status": "SUCCEEDED",
+                "accept_s": 0.131,
+                "start_s": 7.971,
+                "worker_s": 0.0,
+                "e2e_s": 12.196,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "3c5e1883-b86b-470e-9e45-9a7e69b5b360",
+                "status": "SUCCEEDED",
+                "accept_s": 0.132,
+                "start_s": 4.971,
+                "worker_s": 1.0,
+                "e2e_s": 14.706,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "263c5259-2dde-4485-81ba-a9940c3c99cc",
+                "status": "SUCCEEDED",
+                "accept_s": 0.157,
+                "start_s": 7.97,
+                "worker_s": 0.0,
+                "e2e_s": 15.861,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "6d911283-1a14-4cfe-a089-7f9730bf4402",
+                "status": "SUCCEEDED",
+                "accept_s": 0.156,
+                "start_s": 5.969,
+                "worker_s": 1.0,
+                "e2e_s": 16.103,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "03918e6f-90c3-44cb-b197-60247dfcc4a9",
+                "status": "SUCCEEDED",
+                "accept_s": 0.181,
+                "start_s": 6.969,
+                "worker_s": 1.0,
+                "e2e_s": 17.382,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "fb07d1d8-0910-4fba-bae5-45927e4040b6",
+                "status": "SUCCEEDED",
+                "accept_s": 0.18,
+                "start_s": 7.968,
+                "worker_s": 0.0,
+                "e2e_s": 17.095,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "d221bf38-51b5-4c04-9821-fae2cbc4ba5a",
+                "status": "SUCCEEDED",
+                "accept_s": 0.201,
+                "start_s": 8.968,
+                "worker_s": 0.0,
+                "e2e_s": 18.286,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "4666909a-3bee-4525-8d86-538e2f85bf48",
+                "status": "SUCCEEDED",
+                "accept_s": 0.2,
+                "start_s": 8.967,
+                "worker_s": 0.0,
+                "e2e_s": 18.559,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "6e909d8c-de31-42b7-89f3-7614e04971ab",
+                "status": "SUCCEEDED",
+                "accept_s": 0.215,
+                "start_s": 8.967,
+                "worker_s": 0.0,
+                "e2e_s": 19.959,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "387686b9-9629-4cb5-9889-dd03e098958f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.217,
+                "start_s": 7.966,
+                "worker_s": 0.0,
+                "e2e_s": 19.714,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 20,
+              "succeeded": 20,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.021,
+                "median": 0.121,
+                "p95": 0.215,
+                "max": 0.217
+              },
+              "start_s": {
+                "min": 3.973,
+                "median": 6.974,
+                "p95": 8.968,
+                "max": 8.973
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 1.0,
+                "max": 2.0
+              },
+              "e2e_s": {
+                "min": 9.006,
+                "median": 15.284,
+                "p95": 20.992,
+                "max": 21.117
+              },
+              "wall_s": 21.122,
+              "runs_per_min": 56.81
+            }
+          }
+        ]
+      }
+    },
+    {
+      "number": 7,
+      "configuration": "C",
+      "started_at": "2026-10-08T12:11:13+00:00",
+      "finished_at": "2026-10-08T12:11:42+00:00",
+      "web_before": {
+        "name": "web-56c457b79d-ts2dt",
+        "restarts": 0,
+        "memory_peak_bytes": 235778048
+      },
+      "web_after": {
+        "name": "web-56c457b79d-ts2dt",
+        "restarts": 0,
+        "memory_peak_bytes": 393478144
+      },
+      "measurement": {
+        "measured_at": "2026-10-08T12:11:14+00:00",
+        "body": {
+          "ticker": "AAPL.csv",
+          "rule_type": "RSI",
+          "params": {},
+          "start_date": "2020-01-01",
+          "end_date": "2024-12-31"
+        },
+        "rounds": [
+          {
+            "mode": "sequential",
+            "n": 2,
+            "runs": [
+              {
+                "run_id": "e0d8bd47-a142-4e99-b59a-5aba21979fb7",
+                "status": "SUCCEEDED",
+                "accept_s": 0.418,
+                "start_s": 2.826,
+                "worker_s": 0.0,
+                "e2e_s": 3.659,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "90cb1a69-c39e-4f9d-9d0e-beb6854fd68f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.014,
+                "start_s": 2.167,
+                "worker_s": 0.0,
+                "e2e_s": 3.026,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 2,
+              "succeeded": 2,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.014,
+                "median": 0.216,
+                "p95": 0.418,
+                "max": 0.418
+              },
+              "start_s": {
+                "min": 2.167,
+                "median": 2.497,
+                "p95": 2.826,
+                "max": 2.826
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 0.0,
+                "max": 0.0
+              },
+              "e2e_s": {
+                "min": 3.026,
+                "median": 3.342,
+                "p95": 3.659,
+                "max": 3.659
+              }
+            }
+          },
+          {
+            "mode": "concurrent",
+            "n": 20,
+            "runs": [
+              {
+                "run_id": "d9331132-546d-4030-94a3-4ec25f1dcc9b",
+                "status": "SUCCEEDED",
+                "accept_s": 0.019,
+                "start_s": 8.14,
+                "worker_s": 0.0,
+                "e2e_s": 20.741,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "d2ec4c08-7206-4feb-85e9-b45117480345",
+                "status": "SUCCEEDED",
+                "accept_s": 0.016,
+                "start_s": 4.14,
+                "worker_s": 1.0,
+                "e2e_s": 8.738,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "ebc9ff6d-5ab3-4950-b4a8-c03e6e37db41",
+                "status": "SUCCEEDED",
+                "accept_s": 0.035,
+                "start_s": 4.139,
+                "worker_s": 0.0,
+                "e2e_s": 8.437,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "efd630f9-edbc-493e-aef1-8a3aabccecfc",
+                "status": "SUCCEEDED",
+                "accept_s": 0.057,
+                "start_s": 6.139,
+                "worker_s": 0.0,
+                "e2e_s": 10.349,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "e770855c-a636-4915-894c-60d2327958cd",
+                "status": "SUCCEEDED",
+                "accept_s": 0.038,
+                "start_s": 6.138,
+                "worker_s": 1.0,
+                "e2e_s": 20.838,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "1fe2eec5-fc44-40ea-9f4a-df34828b7d47",
+                "status": "SUCCEEDED",
+                "accept_s": 0.056,
+                "start_s": 4.138,
+                "worker_s": 1.0,
+                "e2e_s": 10.575,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "d7886d2e-a4fc-4d4c-be0f-9e8bf324b2d7",
+                "status": "SUCCEEDED",
+                "accept_s": 0.078,
+                "start_s": 7.137,
+                "worker_s": 0.0,
+                "e2e_s": 11.639,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "13375721-c7f0-43da-aa39-d734ce760324",
+                "status": "SUCCEEDED",
+                "accept_s": 0.096,
+                "start_s": 8.136,
+                "worker_s": 0.0,
+                "e2e_s": 12.847,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "f4466e44-7e38-4298-898e-d5cc700eb127",
+                "status": "SUCCEEDED",
+                "accept_s": 0.077,
+                "start_s": 7.136,
+                "worker_s": 0.0,
+                "e2e_s": 13.053,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "5806ae0c-6d32-48d0-ad2b-2c5c4ba92ec4",
+                "status": "SUCCEEDED",
+                "accept_s": 0.095,
+                "start_s": 7.136,
+                "worker_s": 0.0,
+                "e2e_s": 11.863,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "34163a98-89ae-4776-9fd2-c14c7d344d1a",
+                "status": "SUCCEEDED",
+                "accept_s": 0.118,
+                "start_s": 5.135,
+                "worker_s": 1.0,
+                "e2e_s": 14.264,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "c4c13705-6922-4cc3-a958-e128941dcfdb",
+                "status": "SUCCEEDED",
+                "accept_s": 0.117,
+                "start_s": 8.135,
+                "worker_s": 0.0,
+                "e2e_s": 14.47,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "c2e8cf14-a8c0-49d8-b643-c9e63978586b",
+                "status": "SUCCEEDED",
+                "accept_s": 0.138,
+                "start_s": 5.134,
+                "worker_s": 0.0,
+                "e2e_s": 16.734,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "dced02a5-f52e-4264-9e7f-b30103e07c10",
+                "status": "SUCCEEDED",
+                "accept_s": 0.139,
+                "start_s": 8.133,
+                "worker_s": 0.0,
+                "e2e_s": 15.528,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "d7f01487-eb61-47de-97fb-a865151230e2",
+                "status": "SUCCEEDED",
+                "accept_s": 0.157,
+                "start_s": 8.133,
+                "worker_s": 0.0,
+                "e2e_s": 16.869,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "d8513e26-2abd-4d9f-9238-c9f234924b3c",
+                "status": "SUCCEEDED",
+                "accept_s": 0.156,
+                "start_s": 7.132,
+                "worker_s": 1.0,
+                "e2e_s": 15.673,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "68b576e5-5193-4a9e-b026-2727d19a3269",
+                "status": "SUCCEEDED",
+                "accept_s": 0.172,
+                "start_s": 6.132,
+                "worker_s": 1.0,
+                "e2e_s": 18.068,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "f4e4daaf-5d27-4087-be6b-61d0c6bf9181",
+                "status": "SUCCEEDED",
+                "accept_s": 0.172,
+                "start_s": 6.131,
+                "worker_s": 1.0,
+                "e2e_s": 19.541,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "4cb632b4-9d9d-4b68-989f-4d24302b7742",
+                "status": "SUCCEEDED",
+                "accept_s": 0.184,
+                "start_s": 7.131,
+                "worker_s": 0.0,
+                "e2e_s": 19.743,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "185bab3d-18a0-42d0-b82a-57cbae852566",
+                "status": "SUCCEEDED",
+                "accept_s": 0.185,
+                "start_s": 7.13,
+                "worker_s": 0.0,
+                "e2e_s": 18.268,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 20,
+              "succeeded": 20,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.016,
+                "median": 0.107,
+                "p95": 0.184,
+                "max": 0.185
+              },
+              "start_s": {
+                "min": 4.138,
+                "median": 7.13,
+                "p95": 8.136,
+                "max": 8.14
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 1.0,
+                "max": 1.0
+              },
+              "e2e_s": {
+                "min": 8.437,
+                "median": 14.999,
+                "p95": 20.741,
+                "max": 20.838
+              },
+              "wall_s": 20.844,
+              "runs_per_min": 57.57
+            }
+          }
+        ]
+      }
+    },
+    {
+      "number": 8,
+      "configuration": "A",
+      "started_at": "2026-10-08T12:11:56+00:00",
+      "finished_at": "2026-10-08T12:12:38+00:00",
+      "web_before": {
+        "name": "web-c9cfb5876-c87bk",
+        "restarts": 0,
+        "memory_peak_bytes": 129490944
+      },
+      "web_after": {
+        "name": "web-c9cfb5876-c87bk",
+        "restarts": 0,
+        "memory_peak_bytes": 211763200
+      },
+      "measurement": {
+        "measured_at": "2026-10-08T12:11:57+00:00",
+        "body": {
+          "ticker": "AAPL.csv",
+          "rule_type": "RSI",
+          "params": {},
+          "start_date": "2020-01-01",
+          "end_date": "2024-12-31"
+        },
+        "rounds": [
+          {
+            "mode": "sequential",
+            "n": 2,
+            "runs": [
+              {
+                "run_id": "2cfb659c-c9cc-4b13-843c-4ad51200a280",
+                "status": "SUCCEEDED",
+                "accept_s": 0.705,
+                "start_s": 2.888,
+                "worker_s": 0.0,
+                "e2e_s": 3.891,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "096c4398-f2bf-4c03-a890-360399c421a4",
+                "status": "SUCCEEDED",
+                "accept_s": 0.015,
+                "start_s": 1.997,
+                "worker_s": 0.0,
+                "e2e_s": 3.112,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 2,
+              "succeeded": 2,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.015,
+                "median": 0.36,
+                "p95": 0.705,
+                "max": 0.705
+              },
+              "start_s": {
+                "min": 1.997,
+                "median": 2.442,
+                "p95": 2.888,
+                "max": 2.888
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 0.0,
+                "max": 0.0
+              },
+              "e2e_s": {
+                "min": 3.112,
+                "median": 3.502,
+                "p95": 3.891,
+                "max": 3.891
+              }
+            }
+          },
+          {
+            "mode": "concurrent",
+            "n": 20,
+            "runs": [
+              {
+                "run_id": "ac411256-6e19-433c-a2b9-62936ef5dc5f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.054,
+                "start_s": 4.885,
+                "worker_s": 1.0,
+                "e2e_s": 8.972,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "18c7aa0b-48a3-4a9b-909d-d10f84191c2b",
+                "status": "SUCCEEDED",
+                "accept_s": 0.066,
+                "start_s": 3.884,
+                "worker_s": 1.0,
+                "e2e_s": 10.291,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "82fce655-0750-4eae-8901-df26a92d7acf",
+                "status": "SUCCEEDED",
+                "accept_s": 0.103,
+                "start_s": 6.884,
+                "worker_s": 1.0,
+                "e2e_s": 12.784,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "2af12b21-a07f-4f18-b453-6ab964e40003",
+                "status": "SUCCEEDED",
+                "accept_s": 0.083,
+                "start_s": 5.884,
+                "worker_s": 0.0,
+                "e2e_s": 11.577,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "f0939143-f20b-4f13-8e08-21468f68a37e",
+                "status": "SUCCEEDED",
+                "accept_s": 0.121,
+                "start_s": 7.883,
+                "worker_s": 0.0,
+                "e2e_s": 14.091,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "3a770070-0752-4c20-8d5f-28a464609a6f",
+                "status": "SUCCEEDED",
+                "accept_s": 0.141,
+                "start_s": 3.883,
+                "worker_s": 0.0,
+                "e2e_s": 15.267,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "edf39897-41db-48dc-9a85-f0d4f55d52c5",
+                "status": "SUCCEEDED",
+                "accept_s": 0.163,
+                "start_s": 5.882,
+                "worker_s": 1.0,
+                "e2e_s": 16.396,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "08ea69c7-8d71-432e-89a7-d5cb0455e714",
+                "status": "SUCCEEDED",
+                "accept_s": 0.181,
+                "start_s": 7.881,
+                "worker_s": 0.0,
+                "e2e_s": 18.478,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "f7beaad8-4acd-4862-b033-b9a60b8f90bc",
+                "status": "SUCCEEDED",
+                "accept_s": 0.2,
+                "start_s": 6.881,
+                "worker_s": 1.0,
+                "e2e_s": 19.607,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "61bf64b8-ed50-4428-afc0-36100e2ed3d3",
+                "status": "SUCCEEDED",
+                "accept_s": 0.217,
+                "start_s": 6.881,
+                "worker_s": 0.0,
+                "e2e_s": 20.809,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "a90c102e-ea53-4979-af0f-e9fb5d5e3052",
+                "status": "SUCCEEDED",
+                "accept_s": 0.235,
+                "start_s": 6.88,
+                "worker_s": 0.0,
+                "e2e_s": 22.281,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "7012d5e3-1c4a-4eb3-90e0-31daca81e543",
+                "status": "SUCCEEDED",
+                "accept_s": 0.253,
+                "start_s": 6.88,
+                "worker_s": 1.0,
+                "e2e_s": 23.606,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "f6f23b68-4294-427b-a77e-e198e83ef2cb",
+                "status": "SUCCEEDED",
+                "accept_s": 0.27,
+                "start_s": 8.879,
+                "worker_s": 0.0,
+                "e2e_s": 24.965,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "39414633-84ff-493b-9638-97432518d1e2",
+                "status": "SUCCEEDED",
+                "accept_s": 0.287,
+                "start_s": 7.879,
+                "worker_s": 0.0,
+                "e2e_s": 26.112,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "dd20203e-b357-4ab5-9384-621ab6872b84",
+                "status": "SUCCEEDED",
+                "accept_s": 0.301,
+                "start_s": 6.878,
+                "worker_s": 0.0,
+                "e2e_s": 27.49,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "096c6ac3-2799-4943-b572-dea1138be967",
+                "status": "SUCCEEDED",
+                "accept_s": 0.317,
+                "start_s": 6.878,
+                "worker_s": 1.0,
+                "e2e_s": 28.671,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "03abefa9-24ae-4047-9a5c-a4897f61b06e",
+                "status": "SUCCEEDED",
+                "accept_s": 0.352,
+                "start_s": 8.877,
+                "worker_s": 0.0,
+                "e2e_s": 31.176,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "dfa2d619-063d-44f8-959f-ba9feb47c10c",
+                "status": "SUCCEEDED",
+                "accept_s": 0.336,
+                "start_s": 5.877,
+                "worker_s": 1.0,
+                "e2e_s": 29.813,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "0b08837f-be70-48b5-a676-5ea44dc1a018",
+                "status": "SUCCEEDED",
+                "accept_s": 0.368,
+                "start_s": 6.876,
+                "worker_s": 0.0,
+                "e2e_s": 32.299,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "21ee6861-3665-4650-8b6c-b5d326b16102",
+                "status": "SUCCEEDED",
+                "accept_s": 0.381,
+                "start_s": 5.876,
+                "worker_s": 1.0,
+                "e2e_s": 33.491,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 20,
+              "succeeded": 20,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.054,
+                "median": 0.226,
+                "p95": 0.368,
+                "max": 0.381
+              },
+              "start_s": {
+                "min": 3.883,
+                "median": 6.879,
+                "p95": 8.877,
+                "max": 8.879
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 1.0,
+                "max": 1.0
+              },
+              "e2e_s": {
+                "min": 8.972,
+                "median": 21.545,
+                "p95": 32.299,
+                "max": 33.491
+              },
+              "wall_s": 33.504,
+              "runs_per_min": 35.82
+            }
+          }
+        ]
+      }
+    },
+    {
+      "number": 9,
+      "configuration": "A",
+      "started_at": "2026-10-08T12:12:51+00:00",
+      "finished_at": "2026-10-08T12:13:33+00:00",
+      "web_before": {
+        "name": "web-cc76c98d7-xrb94",
+        "restarts": 0,
+        "memory_peak_bytes": 129732608
+      },
+      "web_after": {
+        "name": "web-cc76c98d7-xrb94",
+        "restarts": 0,
+        "memory_peak_bytes": 212111360
+      },
+      "measurement": {
+        "measured_at": "2026-10-08T12:12:52+00:00",
+        "body": {
+          "ticker": "AAPL.csv",
+          "rule_type": "RSI",
+          "params": {},
+          "start_date": "2020-01-01",
+          "end_date": "2024-12-31"
+        },
+        "rounds": [
+          {
+            "mode": "sequential",
+            "n": 2,
+            "runs": [
+              {
+                "run_id": "081c86ef-e54a-4ae9-a237-e4a5448048bb",
+                "status": "SUCCEEDED",
+                "accept_s": 0.696,
+                "start_s": 2.65,
+                "worker_s": 0.0,
+                "e2e_s": 4.471,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "5553a8bf-05a4-4633-9ea4-433e1b437e92",
+                "status": "SUCCEEDED",
+                "accept_s": 0.025,
+                "start_s": 2.179,
+                "worker_s": 0.0,
+                "e2e_s": 3.13,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 2,
+              "succeeded": 2,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.025,
+                "median": 0.36,
+                "p95": 0.696,
+                "max": 0.696
+              },
+              "start_s": {
+                "min": 2.179,
+                "median": 2.414,
+                "p95": 2.65,
+                "max": 2.65
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 0.0,
+                "max": 0.0
+              },
+              "e2e_s": {
+                "min": 3.13,
+                "median": 3.8,
+                "p95": 4.471,
+                "max": 4.471
+              }
+            }
+          },
+          {
+            "mode": "concurrent",
+            "n": 20,
+            "runs": [
+              {
+                "run_id": "08aee205-46b8-4356-9706-658034352b8c",
+                "status": "SUCCEEDED",
+                "accept_s": 0.02,
+                "start_s": 7.048,
+                "worker_s": 0.0,
+                "e2e_s": 33.061,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "e43fa629-a408-4062-92f3-c1fd0b27d4ab",
+                "status": "SUCCEEDED",
+                "accept_s": 0.034,
+                "start_s": 5.047,
+                "worker_s": 0.0,
+                "e2e_s": 8.596,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "87c81ba0-1d09-4c05-bcad-f6b882beb402",
+                "status": "SUCCEEDED",
+                "accept_s": 0.05,
+                "start_s": 7.047,
+                "worker_s": 1.0,
+                "e2e_s": 10.168,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "07b20563-25dc-4609-84a0-da1377973b6a",
+                "status": "SUCCEEDED",
+                "accept_s": 0.068,
+                "start_s": 5.046,
+                "worker_s": 1.0,
+                "e2e_s": 11.483,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "836be768-b247-4e57-a83f-b00f1ed7e040",
+                "status": "SUCCEEDED",
+                "accept_s": 0.1,
+                "start_s": 6.046,
+                "worker_s": 1.0,
+                "e2e_s": 12.664,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "08c3f83f-07a1-472d-9bd8-fb8a126a3916",
+                "status": "SUCCEEDED",
+                "accept_s": 0.118,
+                "start_s": 6.045,
+                "worker_s": 0.0,
+                "e2e_s": 14.091,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "21082830-605a-4b8d-9f6d-c55cc5cc0953",
+                "status": "SUCCEEDED",
+                "accept_s": 0.143,
+                "start_s": 7.044,
+                "worker_s": 0.0,
+                "e2e_s": 15.286,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "56abdb17-a31c-407d-a0e9-b728f4923a51",
+                "status": "SUCCEEDED",
+                "accept_s": 0.176,
+                "start_s": 6.043,
+                "worker_s": 1.0,
+                "e2e_s": 17.882,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "f97c30a2-0136-419c-901e-24f89561c005",
+                "status": "SUCCEEDED",
+                "accept_s": 0.162,
+                "start_s": 7.043,
+                "worker_s": 1.0,
+                "e2e_s": 16.485,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "bd99a09d-8d4f-474b-a95e-4c589442a326",
+                "status": "SUCCEEDED",
+                "accept_s": 0.192,
+                "start_s": 7.042,
+                "worker_s": 0.0,
+                "e2e_s": 19.001,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "4adf5b02-c694-420d-acfd-7589f50cf786",
+                "status": "SUCCEEDED",
+                "accept_s": 0.22,
+                "start_s": 6.042,
+                "worker_s": 1.0,
+                "e2e_s": 20.187,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "33b16599-0746-4d55-9405-6f5ca38e7692",
+                "status": "SUCCEEDED",
+                "accept_s": 0.238,
+                "start_s": 7.041,
+                "worker_s": 0.0,
+                "e2e_s": 21.493,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "321480d9-c800-4c2d-ac1f-f8ea8bd7b6e3",
+                "status": "SUCCEEDED",
+                "accept_s": 0.259,
+                "start_s": 6.04,
+                "worker_s": 0.0,
+                "e2e_s": 22.762,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "90ae9f38-8290-4f59-b271-2584c2249d1b",
+                "status": "SUCCEEDED",
+                "accept_s": 0.28,
+                "start_s": 8.039,
+                "worker_s": 0.0,
+                "e2e_s": 23.959,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "27df180b-7a55-4696-b3f2-ac6daad757c5",
+                "status": "SUCCEEDED",
+                "accept_s": 0.294,
+                "start_s": 6.038,
+                "worker_s": 1.0,
+                "e2e_s": 25.089,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "97ca1d79-cc82-4953-b3bb-35b08aeb4583",
+                "status": "SUCCEEDED",
+                "accept_s": 0.313,
+                "start_s": 6.037,
+                "worker_s": 1.0,
+                "e2e_s": 26.456,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "6fc5db1d-0104-4b2d-89e9-5f3622ff7ef8",
+                "status": "SUCCEEDED",
+                "accept_s": 0.326,
+                "start_s": 6.037,
+                "worker_s": 0.0,
+                "e2e_s": 27.59,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "ae3d3b7b-c793-4107-b274-64edebba8266",
+                "status": "SUCCEEDED",
+                "accept_s": 0.355,
+                "start_s": 6.036,
+                "worker_s": 0.0,
+                "e2e_s": 29.415,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "ae8fe7e5-cbf0-42f9-b67a-ce0716b580d5",
+                "status": "SUCCEEDED",
+                "accept_s": 0.377,
+                "start_s": 8.035,
+                "worker_s": 0.0,
+                "e2e_s": 30.729,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "1921785f-e565-4c2e-a0e0-cc9b538a0870",
+                "status": "SUCCEEDED",
+                "accept_s": 0.408,
+                "start_s": 7.035,
+                "worker_s": 0.0,
+                "e2e_s": 31.902,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 20,
+              "succeeded": 20,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.02,
+                "median": 0.206,
+                "p95": 0.377,
+                "max": 0.408
+              },
+              "start_s": {
+                "min": 5.046,
+                "median": 6.046,
+                "p95": 8.035,
+                "max": 8.039
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 1.0,
+                "max": 1.0
+              },
+              "e2e_s": {
+                "min": 8.596,
+                "median": 20.84,
+                "p95": 31.902,
+                "max": 33.061
+              },
+              "wall_s": 33.065,
+              "runs_per_min": 36.29
+            }
+          }
+        ]
+      }
+    },
+    {
+      "number": 10,
+      "configuration": "C",
+      "started_at": "2026-10-08T12:13:47+00:00",
+      "finished_at": "2026-10-08T12:14:16+00:00",
+      "web_before": {
+        "name": "web-68b4767dfd-rkfhm",
+        "restarts": 0,
+        "memory_peak_bytes": 237420544
+      },
+      "web_after": {
+        "name": "web-68b4767dfd-rkfhm",
+        "restarts": 0,
+        "memory_peak_bytes": 398389248
+      },
+      "measurement": {
+        "measured_at": "2026-10-08T12:13:48+00:00",
+        "body": {
+          "ticker": "AAPL.csv",
+          "rule_type": "RSI",
+          "params": {},
+          "start_date": "2020-01-01",
+          "end_date": "2024-12-31"
+        },
+        "rounds": [
+          {
+            "mode": "sequential",
+            "n": 2,
+            "runs": [
+              {
+                "run_id": "46b6fbc2-7d77-4c17-8a62-578c507882c0",
+                "status": "SUCCEEDED",
+                "accept_s": 0.463,
+                "start_s": 2.709,
+                "worker_s": 0.0,
+                "e2e_s": 3.099,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "26d5dcd0-7d66-42c5-9e5b-c130cd68cc9e",
+                "status": "SUCCEEDED",
+                "accept_s": 0.013,
+                "start_s": 1.61,
+                "worker_s": 0.0,
+                "e2e_s": 2.622,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 2,
+              "succeeded": 2,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.013,
+                "median": 0.238,
+                "p95": 0.463,
+                "max": 0.463
+              },
+              "start_s": {
+                "min": 1.61,
+                "median": 2.159,
+                "p95": 2.709,
+                "max": 2.709
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.0,
+                "p95": 0.0,
+                "max": 0.0
+              },
+              "e2e_s": {
+                "min": 2.622,
+                "median": 2.861,
+                "p95": 3.099,
+                "max": 3.099
+              }
+            }
+          },
+          {
+            "mode": "concurrent",
+            "n": 20,
+            "runs": [
+              {
+                "run_id": "7bf8e5db-ae32-4de0-bcc5-63d54a09d4cb",
+                "status": "SUCCEEDED",
+                "accept_s": 0.017,
+                "start_s": 5.988,
+                "worker_s": 1.0,
+                "e2e_s": 21.41,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "e33ad70b-7c71-4751-86ad-6074a6b9694c",
+                "status": "SUCCEEDED",
+                "accept_s": 0.705,
+                "start_s": 8.988,
+                "worker_s": 0.0,
+                "e2e_s": 20.341,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "121248ff-bed9-46fa-bb3a-503ee702d8de",
+                "status": "SUCCEEDED",
+                "accept_s": 0.033,
+                "start_s": 5.987,
+                "worker_s": 0.0,
+                "e2e_s": 9.545,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "d12fcb2d-c1a4-4298-ae87-e2f450fb7f76",
+                "status": "SUCCEEDED",
+                "accept_s": 0.079,
+                "start_s": 7.987,
+                "worker_s": 0.0,
+                "e2e_s": 21.511,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "60ccec81-e501-479f-9b76-012b5b07a83b",
+                "status": "SUCCEEDED",
+                "accept_s": 0.06,
+                "start_s": 3.986,
+                "worker_s": 1.0,
+                "e2e_s": 9.701,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "454af498-8701-4a9d-af8b-f3fed51ef313",
+                "status": "SUCCEEDED",
+                "accept_s": 0.118,
+                "start_s": 5.986,
+                "worker_s": 1.0,
+                "e2e_s": 11.096,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "cdb3c941-e79e-4e1a-ab29-c92e12f79cb0",
+                "status": "SUCCEEDED",
+                "accept_s": 0.099,
+                "start_s": 3.986,
+                "worker_s": 1.0,
+                "e2e_s": 10.958,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "2b774853-7616-4549-b25d-37b7cbfd3490",
+                "status": "SUCCEEDED",
+                "accept_s": 0.152,
+                "start_s": 5.985,
+                "worker_s": 0.0,
+                "e2e_s": 12.339,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "48a34d39-efb8-4070-8c0a-103997387c90",
+                "status": "SUCCEEDED",
+                "accept_s": 0.181,
+                "start_s": 6.984,
+                "worker_s": 1.0,
+                "e2e_s": 12.519,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "c99e4379-696d-499a-9900-606a360590c8",
+                "status": "SUCCEEDED",
+                "accept_s": 0.194,
+                "start_s": 5.984,
+                "worker_s": 0.0,
+                "e2e_s": 13.798,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "cdd76547-c976-4d74-98ce-004925f1e471",
+                "status": "SUCCEEDED",
+                "accept_s": 0.214,
+                "start_s": 8.984,
+                "worker_s": 0.0,
+                "e2e_s": 13.927,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "9951454d-87b5-49dd-a8f5-3b9c31bc5eb0",
+                "status": "SUCCEEDED",
+                "accept_s": 0.271,
+                "start_s": 5.983,
+                "worker_s": 1.0,
+                "e2e_s": 15.235,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "9b717d89-16d6-4174-b94c-bb9f2f9b2d92",
+                "status": "SUCCEEDED",
+                "accept_s": 0.247,
+                "start_s": 7.982,
+                "worker_s": 1.0,
+                "e2e_s": 15.016,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "3c119ad0-0717-4a88-b85e-7c24f62b2ed4",
+                "status": "SUCCEEDED",
+                "accept_s": 0.289,
+                "start_s": 8.981,
+                "worker_s": 0.0,
+                "e2e_s": 16.187,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "fe6f538c-30cd-452a-be4e-dba1391d9152",
+                "status": "SUCCEEDED",
+                "accept_s": 0.303,
+                "start_s": 8.981,
+                "worker_s": 0.0,
+                "e2e_s": 16.428,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "68480b06-d150-464b-98e9-5acddba7874c",
+                "status": "SUCCEEDED",
+                "accept_s": 0.315,
+                "start_s": 8.98,
+                "worker_s": 0.0,
+                "e2e_s": 17.616,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "ca99e2de-f618-4d8d-9e7f-a014fb94fee6",
+                "status": "SUCCEEDED",
+                "accept_s": 0.349,
+                "start_s": 7.98,
+                "worker_s": 1.0,
+                "e2e_s": 17.722,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "da3d8408-fa5d-4413-a9cb-c361b6428a91",
+                "status": "SUCCEEDED",
+                "accept_s": 0.39,
+                "start_s": 7.979,
+                "worker_s": 1.0,
+                "e2e_s": 18.738,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "034eeb3b-8bfa-4c17-a056-d3dfb41dda2a",
+                "status": "SUCCEEDED",
+                "accept_s": 0.408,
+                "start_s": 7.979,
+                "worker_s": 0.0,
+                "e2e_s": 19.126,
+                "error": null,
+                "poll_errors": 0
+              },
+              {
+                "run_id": "b99eca1f-c6e7-46d8-b9a8-32ee238e7e83",
+                "status": "SUCCEEDED",
+                "accept_s": 0.444,
+                "start_s": 7.978,
+                "worker_s": 1.0,
+                "e2e_s": 19.986,
+                "error": null,
+                "poll_errors": 0
+              }
+            ],
+            "summary": {
+              "requests": 20,
+              "succeeded": 20,
+              "failed": 0,
+              "poll_errors": 0,
+              "accept_s": {
+                "min": 0.017,
+                "median": 0.23,
+                "p95": 0.444,
+                "max": 0.705
+              },
+              "start_s": {
+                "min": 3.986,
+                "median": 7.979,
+                "p95": 8.984,
+                "max": 8.988
+              },
+              "worker_s": {
+                "min": 0.0,
+                "median": 0.5,
+                "p95": 1.0,
+                "max": 1.0
+              },
+              "e2e_s": {
+                "min": 9.545,
+                "median": 15.711,
+                "p95": 21.41,
+                "max": 21.511
+              },
+              "wall_s": 21.516,
+              "runs_per_min": 55.77
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "finished_at": "2026-10-08T12:14:16+00:00",
+  "aggregate": {
+    "summary": {
+      "A": {
+        "throughput_median": 36.29,
+        "throughput_min": 35.65,
+        "throughput_max": 41.42,
+        "wall_median": 33.065,
+        "p95_e2e": 32.299,
+        "success": 100,
+        "failure": 0,
+        "poll_errors": 0,
+        "restarts": 0,
+        "peak_mib": 204.97265625
+      },
+      "C": {
+        "throughput_median": 56.85,
+        "throughput_min": 55.77,
+        "throughput_max": 60.11,
+        "wall_median": 21.107,
+        "p95_e2e": 20.992,
+        "success": 100,
+        "failure": 0,
+        "poll_errors": 0,
+        "restarts": 0,
+        "peak_mib": 408.30078125
+      }
+    },
+    "throughput_increase_pct": 56.65472581978508
+  }
+}
