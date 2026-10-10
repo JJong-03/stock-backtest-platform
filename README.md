@@ -54,6 +54,7 @@
 | 테스트와 CI | 테스트 83개를 main과 feature 브랜치 push, main 대상 PR마다 GitHub Actions에서 pytest로 실행 | [CI 설정](.github/workflows/ci.yml) |
 | 로컬 부하 측정 (2026-09-25) | kind 1노드에서 동시 요청 20건. 병목은 조회할 때마다 차트를 다시 그리는 결과 조회였음. 웹 워커 2개, CPU 한도 1코어, 메모리 한도 1Gi 구성에서 처리량이 분당 27.7건에서 43.7건으로 늘어 이 구성을 매니페스트에 반영(PR #4). 구성별 1회 측정이며 운영 수치가 아님 | [측정 기록과 원자료](docs/measurements/2026-09-25-local-kind-load.md) |
 | AI 코딩 도구 규칙 | 엔진 수정 금지, API 형식 유지, run_id 로깅, 이미지 태그 고정 등 규칙 10가지를 CLAUDE.md에, 작업을 멈춰야 하는 조건을 AGENTS.md에 두고, AI가 만든 변경은 테스트와 CI로 확인한 뒤 반영 | [CLAUDE.md](CLAUDE.md), [AGENTS.md](docs/AGENTS.md) |
+| 로컬 반복 측정 (2026-10-08) | 기존/개선 설정을 각 5회, 회당 동시 요청 20건으로 비교. 200/200 성공, 처리량 중간값 36.29 → 56.85건/분(약 +57%), 완료 시간 p95 32.30 → 20.99초. 조회 오류와 웹 재시작 0건 | [조건, 회차별 결과와 원자료](docs/measurements/2026-10-08-local-kind-repeat.md) |
 
 ---
 
@@ -66,7 +67,7 @@
 3. **조치:** 웹 워커 2개에 CPU 한도 1코어, 메모리 한도 1Gi를 주자 처리량이 분당 43.7건(+58%)으로 늘고, 20건이 모두 끝나는 시간이 43.3초에서 27.4초로 줄었습니다. 메모리는 최대 약 397MiB로 512Mi 안이었으니 차이를 만든 것은 CPU 한도였습니다. 이 구성을 `k8s/web-deployment.yaml`에 반영했습니다([PR #4](https://github.com/JJong-03/stock-backtest-platform/pull/4)).
 4. **남은 과제:** 조회마다 차트를 다시 그리는 근본 원인은 그대로입니다. 차트를 DB에 저장하는 것은 이 저장소의 derive-on-demand 계약과 맞지 않아, 웹 Pod 메모리 캐시를 다음 과제로 남겼습니다.
 
-구성마다 한 번씩 잰 로컬 측정이며 운영 수치가 아닙니다. 조건과 원자료는 [측정 기록](docs/measurements/2026-09-25-local-kind-load.md)에 있습니다.
+위 문제 해결 수치는 2026-09-25에 구성마다 한 번씩 잰 로컬 측정입니다. 조건과 원자료는 [당시 측정 기록](docs/measurements/2026-09-25-local-kind-load.md)에 있습니다. 이후 [2026-10-08 반복 측정](docs/measurements/2026-10-08-local-kind-repeat.md)에서도 개선 설정의 처리량이 높았습니다. 두 실험 모두 운영 수치가 아닙니다.
 
 ---
 
